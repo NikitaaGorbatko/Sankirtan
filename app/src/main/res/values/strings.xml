@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Sankirtan</string>
+
+    <string name="books">Книги</string>
+    <string name="briefcase">Портфель</string>
+    <string name="statistic">Статистика</string>
+</resources>
