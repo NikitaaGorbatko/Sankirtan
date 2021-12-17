@@ -3,6 +3,7 @@ package nikitagorbatko.example.sankirtan
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import nikitagorbatko.example.sankirtan.ui.theme.SankirtanTheme
@@ -21,8 +23,10 @@ import nikitagorbatko.example.sankirtan.ui.theme.SankirtanTheme
 
 class MainActivity : ComponentActivity() {
 
+    //with lambdas...
     val lambda = { x: Int, y: Int -> x + y}
 
+    @ExperimentalAnimationApi
     @ExperimentalMaterialApi
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
         val database = BookRoomDatabase.getDatabase(applicationContext)
         val dao = database.bookDao()
-        val books = dao.getBooks()
+        //val books = dao.getBooks()
 
         setContent {
             SankirtanTheme {
@@ -46,7 +50,9 @@ class MainActivity : ComponentActivity() {
 //    @Composable
 //    fun DefaultPreview() {
 //        SankirtanTheme {
-//            //BookCard(Book(1, "Бхагавад-гита как она есть",1, 100))
+//            BuildDialog(mode = Mode.EDITION, dao = null, book = , books = ) {
+//
+//            }
 //        }
 //    }
 }

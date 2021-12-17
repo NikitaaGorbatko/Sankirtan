@@ -5,15 +5,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.room.*
 
 @Entity(tableName = "book")
-data class Book(@PrimaryKey val id: Int, val name: String, val cost: Int, val amount: Int)
+data class Book(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val cost: Int, val amount: Int)
+
+data class NameAndCostAndAmount(val name: String, val cost: Int, val amount: Int = 10)
 
 @Dao
 interface BookDao {
     @Query("SELECT * FROM book")
     fun getBooks(): MutableList<Book>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBook(book: Book)
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    fun insertBook(book: Book)
+
+    @Query("INSERT INTO book (name, cost, amount) VALUES(:name, :cost, :amount)")
+    fun insertBook(name: String, cost: Int, amount: Int)
+
+    @Query("UPDATE book SET name = :newName, cost = :newCost WHERE id = :bookId")
+    fun updateBook(newName: String, newCost: Int, bookId: Int)
+
+    @Delete
+    fun deleteBook(book: Book)
 }
 
 //enum class Route(val string: String) {

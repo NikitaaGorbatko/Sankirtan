@@ -23,7 +23,7 @@ fun BriefcaseScreen(books: List<Book>, a: Boolean) {
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         //verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (a) { items(books) { item: Book -> if (item.amount > 0) BriefcaseBookCard(book = item) } }
+        if (a) { items(books) { item: Book -> if (item.amount > 0) BriefcaseBookCard(item) } }
     }
 }
 
@@ -34,7 +34,7 @@ fun BriefcaseBookCard(book: Book) {
         elevation = 10.dp,
         shape = RoundedCornerShape(16.dp),
         contentColor = Color.Black,
-        modifier = Modifier.padding(0.dp,0.dp,0.dp,16.dp)
+        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp)
         //border = BorderStroke(0.dp, Color.Black),
     ) {
         //Spacer(modifier = Modifier.width(1000.dp))

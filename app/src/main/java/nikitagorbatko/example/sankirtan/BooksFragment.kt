@@ -1,5 +1,8 @@
 package nikitagorbatko.example.sankirtan
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,10 +17,11 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-fun BooksScreen(books: List<Book>, a: Boolean, onClickDialog: (book: Book) -> Unit) {
+fun BooksScreen(books: List<Book>, a: Boolean, onClickDialog: (book: Book) -> Unit ){// onDelete: () -> Unit) -> Unit) {
     LazyColumn(
         modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 60.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -27,16 +31,19 @@ fun BooksScreen(books: List<Book>, a: Boolean, onClickDialog: (book: Book) -> Un
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
+private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {// onDeleteLambda: () -> Unit) -> Unit) {
+    var visible by remember { mutableStateOf(true) }
+    //AnimatedVisibility(visible = visible, exit = fadeOut()) {
     Card(
         elevation = 10.dp,
         shape = RoundedCornerShape(16.dp),
         contentColor = Color.Black,
         modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp),
-        onClick = { onClickDialog(book) }
+        onClick = { onClickDialog(book)} //{ visible = !visible } }
         //border = BorderStroke(0.dp, Color.Black),
     ) {
         //Spacer(modifier = Modifier.width(1000.dp))
@@ -59,6 +66,7 @@ private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
                 modifier = Modifier.padding(0.dp, 0.dp, 16.dp, 0.dp)
             )
         }
-    }
+    //}
+}
 }
 
