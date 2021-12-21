@@ -12,6 +12,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -26,15 +27,14 @@ class MainActivity : ComponentActivity() {
     //with lambdas...
     val lambda = { x: Int, y: Int -> x + y}
 
+    @ExperimentalComposeUiApi
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val database = BookRoomDatabase.getDatabase(applicationContext)
-        val dao = database.bookDao()
-        //val books = dao.getBooks()
+        val dao = BookRoomDatabase.getDatabase(applicationContext).bookDao()
 
         setContent {
             SankirtanTheme {

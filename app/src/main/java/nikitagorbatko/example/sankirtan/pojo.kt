@@ -1,30 +1,43 @@
 package nikitagorbatko.example.sankirtan
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.room.*
 
 @Entity(tableName = "book")
-data class Book(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val cost: Int, val amount: Int)
+data class Book(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val cost: Int)
 
-data class NameAndCostAndAmount(val name: String, val cost: Int, val amount: Int = 10)
+@Entity(tableName = "item")
+data class Item(
+    @PrimaryKey(autoGenerate = true) val id: Int,
+    val name: String,
+    val cost: Int,
+    var amount: Int
+)
 
 @Dao
 interface BookDao {
     @Query("SELECT * FROM book")
     fun getBooks(): MutableList<Book>
 
-//    @Insert(onConflict = OnConflictStrategy.REPLACE)
-//    fun insertBook(book: Book)
-
-    @Query("INSERT INTO book (name, cost, amount) VALUES(:name, :cost, :amount)")
-    fun insertBook(name: String, cost: Int, amount: Int)
+    @Query("INSERT INTO book (name, cost) VALUES(:name, :cost)")
+    fun insertBook(name: String, cost: Int): Long
 
     @Query("UPDATE book SET name = :newName, cost = :newCost WHERE id = :bookId")
-    fun updateBook(newName: String, newCost: Int, bookId: Int)
+    fun updateBook(bookId: Int, newName: String, newCost: Int): Int
 
     @Delete
-    fun deleteBook(book: Book)
+    fun deleteBook(book: Book): Int
+
+    @Query("SELECT * FROM item")
+    fun getItems(): MutableList<Item>
+
+    @Query("INSERT INTO item (name, cost, amount) VALUES(:name, :cost, :amount)")
+    fun insertItem(name: String, cost: Int, amount: Int): Long
+
+    @Query("UPDATE item SET amount = :amount WHERE id = :itemId")
+    fun updateItem(itemId: Int, amount: Int): Int
+
+    @Delete
+    fun deleteItem(item: Item): Int
 }
 
 //enum class Route(val string: String) {
