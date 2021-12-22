@@ -17,7 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 @ExperimentalUnitApi
 @Composable
 fun BriefcaseScreen(
-    books: List<Book>,
+    items: List<Item>,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     addBookLambda: () -> Unit
@@ -27,7 +27,7 @@ fun BriefcaseScreen(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         //verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(books) { item: Book -> BriefcaseBookCard(item, coroutineScope, snackbarHostState) }
+        items(items) { item: Item -> BriefcaseBookCard(item, coroutineScope, snackbarHostState) }
     }
 }
 
@@ -35,42 +35,37 @@ fun BriefcaseScreen(
 @ExperimentalUnitApi
 @Composable
 fun BriefcaseBookCard(
-    book: Book,
+    item: Item,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState
 ) {
-//    Card(
-//        elevation = 10.dp,
-//        shape = RoundedCornerShape(16.dp),
-//        contentColor = Color.Black,
-//        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 16.dp),
-//        onClick = {
-//            coroutineScope.launch {
-//                snackbarHostState.showSnackbar(book.name, "Label", SnackbarDuration.Short)
-//            }
-//        }
-//        //border = BorderStroke(0.dp, Color.Black),
-//    ) {
-        //Spacer(modifier = Modifier.width(1000.dp))
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        Column {
+            Text(
+                item.name,
+                fontSize = TextUnit(20f, TextUnitType.Sp),
+                modifier = Modifier
+                    .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                    .fillMaxWidth(0.7f),
+                //color = Color.Blue
+            )
+            Text(
+                "${item.cost} руб",
+                fontSize = TextUnit(16f, TextUnitType.Sp),
+                modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)
+            )
+        }
         Text(
-            book.name,
+            "${item.amount} шт",
             fontSize = TextUnit(20f, TextUnitType.Sp),
-            modifier = Modifier
-                .padding(16.dp, 16.dp, 16.dp, 16.dp)
-                .fillMaxWidth(0.7f),
-            //color = Color.Blue
-        )
-        Text(
-            "шт",
-            fontSize = TextUnit(22f, TextUnitType.Sp),
-            modifier = Modifier.padding(0.dp, 0.dp, 16.dp, 0.dp)
+            modifier = Modifier.padding(0.dp, 0.dp, 16.dp, 0.dp),
+            maxLines = 1
         )
     }
     Divider()
-    //}
 }

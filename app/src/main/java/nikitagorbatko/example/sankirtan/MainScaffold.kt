@@ -28,13 +28,19 @@ fun MainScaffold(dao: BookDao) {
     var onAddBookDialog by remember { mutableStateOf(false) }
     val route = remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(dao.getBooks()) }
+    var items by remember { mutableStateOf(dao.getItems()) }
     lateinit var bookForDialog: Book
+    var totalCost = 0
+
+    items.forEach {
+        totalCost += it.cost * it.amount
+    }
 
     Scaffold(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
         topBar = {
             TopAppBar(
-                title = { Text(route.value.title) },
+                title = { Text(route.value.title + if(route.value == BottomScreens.Briefcase) {" ($totalCost руб)"} else "") },
                 elevation = 12.dp,
                 actions = {
                     when (route.value) {
@@ -61,7 +67,7 @@ fun MainScaffold(dao: BookDao) {
                     onEditBookDialog = !onEditBookDialog
                     bookForDialog = book
                 }
-                BottomScreens.Briefcase -> BriefcaseScreen(books, coroutineScope, snackbarHostState) {
+                BottomScreens.Briefcase -> BriefcaseScreen(items, coroutineScope, snackbarHostState) {
                     onAddBookDialog = !onAddBookDialog
                 }
                 BottomScreens.Statistic -> StatisticScreen()
@@ -84,6 +90,7 @@ fun MainScaffold(dao: BookDao) {
             if (onAddBookDialog) {
                 AddBookDialog(dao, books, coroutineScope, snackbarHostState) {
                     onAddBookDialog = !onAddBookDialog
+                    items = dao.getItems()
                 }
             }
         },

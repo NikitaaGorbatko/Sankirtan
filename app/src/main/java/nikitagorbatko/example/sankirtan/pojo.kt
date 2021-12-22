@@ -3,11 +3,15 @@ package nikitagorbatko.example.sankirtan
 import androidx.room.*
 
 @Entity(tableName = "book")
-data class Book(@PrimaryKey(autoGenerate = true) val id: Int, val name: String, val cost: Int)
+data class Book(
+    @PrimaryKey val id: Int,
+    val name: String,
+    val cost: Int
+)
 
 @Entity(tableName = "item")
 data class Item(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey val id: Int,
     val name: String,
     val cost: Int,
     var amount: Int
@@ -39,13 +43,6 @@ interface BookDao {
     @Delete
     fun deleteItem(item: Item): Int
 }
-
-//enum class Route(val string: String) {
-//    BOOKS("Все книги"),
-//    BRIEFCASE("Портфель"),
-//    STATISTIC("Статистика")
-//}
-
 
 sealed class BottomScreens(val title: String, val icon: Int) {
     object Books : BottomScreens("Книги", R.drawable.ic_books)
