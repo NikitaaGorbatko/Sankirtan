@@ -1,6 +1,7 @@
 package nikitagorbatko.example.sankirtan
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,7 +28,7 @@ fun BooksScreen(books: List<Book>, a: Boolean, onEditDialog: (book: Book) -> Uni
         //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         //verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (a) { items(books) { item: Book -> BookCard(item, onEditDialog) } }
+        if (a) { items(books) { book: Book -> BookCard(book, onEditDialog) } }
     }
 }
 
@@ -37,7 +38,9 @@ fun BooksScreen(books: List<Book>, a: Boolean, onEditDialog: (book: Book) -> Uni
 @Composable
 private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxWidth(),//.height(64.dp),
+        modifier = Modifier.fillMaxWidth().height(72.dp).clickable {
+            onClickDialog(book)
+        },//.height(64.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -49,7 +52,7 @@ private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
         )
         Text(
             book.cost.toString() + "₽",
-            color = MaterialTheme.colors.onPrimary,
+            //color = Color(0X57FFFFFF),
             fontSize = TextUnit(14f, TextUnitType.Sp),
             modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
         )
