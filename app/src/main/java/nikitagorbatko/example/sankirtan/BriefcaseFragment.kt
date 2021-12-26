@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.intellij.lang.annotations.JdkConstants
 
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
@@ -51,27 +52,32 @@ fun BriefcaseBookCard(
         //onClickDialog(book)
     }) {
         Column(
-            modifier = Modifier.fillMaxWidth(0.8f),
+            //modifier = Modifier.fillMaxWidth(0.8f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 item.name,
                 //color = MaterialTheme.colors.onPrimary,
+                maxLines = 1,
                 fontSize = TextUnit(16f, TextUnitType.Sp),
                 modifier = Modifier.padding(16.dp, 10.dp, 16.dp, 2.dp)
             )
-            Text(
-                item.cost.toString() + "₽",
-                color = Color(0x57FFFFFF),
-                fontSize = TextUnit(14f, TextUnitType.Sp),
-                modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
-            )
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    item.cost.toString() + "₽",
+                    //color = Color(0x57FFFFFF),
+                    fontSize = TextUnit(14f, TextUnitType.Sp),
+                    modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
+                )
+                Text(item.amount.toString() + "шт",
+                    //color = Color(0X57FFFFFF),
+                    fontSize = TextUnit(14f, TextUnitType.Sp),
+                    modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
+                )
+            }
+
         }
-        Text(item.amount.toString() + "шт",
-            color = Color(0X57FFFFFF),
-            fontSize = TextUnit(14f, TextUnitType.Sp),
-            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 16.dp)
-        )
+
     }
     Divider()
 }
