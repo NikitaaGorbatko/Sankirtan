@@ -67,7 +67,7 @@ fun MainScaffold(dao: BookDao) {
                     onEditBookDialog = !onEditBookDialog
                     bookForDialog = book
                 }
-                BottomScreens.Briefcase -> BriefcaseScreen(items, coroutineScope, snackbarHostState) {
+                BottomScreens.Briefcase -> BriefcaseScreen(items) {
                     onAddBookDialog = !onAddBookDialog
                 }
                 BottomScreens.Statistic -> StatisticScreen()
@@ -88,7 +88,7 @@ fun MainScaffold(dao: BookDao) {
             }
 
             if (onAddBookDialog) {
-                AddBookDialog(dao, books, coroutineScope, snackbarHostState) {
+                CreateItemDialog(dao, books, coroutineScope, snackbarHostState) {
                     onAddBookDialog = !onAddBookDialog
                     items = dao.getItems()
                 }
