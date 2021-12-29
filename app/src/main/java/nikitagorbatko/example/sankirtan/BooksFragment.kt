@@ -5,15 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -52,12 +46,11 @@ private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
             //color = MaterialTheme.colors.onPrimary,
             maxLines = 1,
             fontSize = TextUnit(16f, TextUnitType.Sp),
-            modifier = Modifier
-                .padding(16.dp, 10.dp, 16.dp, 2.dp)
+            modifier = Modifier.padding(16.dp, 10.dp, 16.dp, 2.dp)
         )
         Text(
             book.cost.toString() + "₽",
-            //color = MaterialTheme.colors.onPrimary,
+            style = MaterialTheme.typography.body2,
             fontSize = TextUnit(14f, TextUnitType.Sp),
             modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
         )

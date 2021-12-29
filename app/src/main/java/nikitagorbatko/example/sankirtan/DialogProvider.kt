@@ -13,23 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.FirstBaseline
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import nikitagorbatko.example.sankirtan.ui.theme.SankirtanTheme
-
+import java.lang.Exception
 
 
 //Create book dialog
@@ -42,7 +32,7 @@ fun CreateBookDialog(
     closeLambda: () -> Unit
 ) {
     var bookName by remember { mutableStateOf("") }
-    var cost by remember { mutableStateOf("") }
+    var bookCost by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = { closeLambda() }) {
         Column(modifier = Modifier
@@ -63,22 +53,28 @@ fun CreateBookDialog(
             OutlinedTextField(
                 modifier = Modifier.padding(bottom = 8.dp, end = 24.dp),
                 value = bookName,
+                maxLines = 1,
                 onValueChange = { bookName = it },
                 label = { Text("Название") }
             )
             OutlinedTextField(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.padding(bottom = 28.dp, end = 24.dp),
-                value = cost,
-                onValueChange = {
-                    if ((!it.contains("-")) or (!it.contains("."))) cost = it
-                },
+                value = bookCost,
+                maxLines = 1,
+                onValueChange = { if (it.length < 4) bookCost = it },
                 label = { Text("Цена") }
             )
-            Box(modifier = Modifier.fillMaxSize().padding(end = 8.dp, bottom = 8.dp), contentAlignment = Alignment.BottomEnd) {
+            Box(
+                contentAlignment = Alignment.BottomEnd,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 8.dp, bottom = 8.dp)
+            ) {
                 TextButton(
+                    enabled = bookName.length > 3 && try { bookCost.toInt() > 0 } catch (_: Exception) { false },
                     onClick = {
-                        if (dao.insertBook(bookName, cost.toInt()) > 0) {
+                        if (dao.insertBook(bookName, bookCost.toInt()) > 0) {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
                                     "$bookName добавлена",
@@ -107,62 +103,73 @@ fun EditBookDialog(
     var editedName by remember { mutableStateOf(book.name) }
     var editedCost by remember { mutableStateOf(book.cost.toString()) }
 
-    AlertDialog(
-        onDismissRequest = { closeLambda(false) },
-        title = {
-            Text(
-                text = "Редактировать книгу",
-                modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp),
-            )
-        },
-        text = {
-            Column() {
-                OutlinedTextField(
-                    modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp),
-                    value = editedName,
-                    onValueChange = { editedName = it },
-                    label = { Text("Название") }
-                )
-                OutlinedTextField(
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 0.dp),
-                    value = editedCost,
-                    onValueChange = { if ((it != "-") or (it != ".")) editedCost = it },
-                    label = { Text("Цена") }
+    Dialog(onDismissRequest = { closeLambda(false) }) {
+        Column(modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colors.surface)
+            .height(intrinsicSize = IntrinsicSize.Min)
+            .width(IntrinsicSize.Max)
+            .padding(24.dp, 0.dp, 0.dp, 0.dp)
+        ) {
+            Box(Modifier.height(56.dp)) {
+                Text(
+                    text = "Запись #${book.id}",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                 )
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    //dao.updateBook(Book(book.id, book.name, book.))
-                    if (dao.updateBook(book.id, editedName, editedCost.toInt()) == 1) {
-                         coroutineScope.launch {
-                             snackbarHostState.showSnackbar(
-                                 "${book.name} изменена",
-                                 "OK",
-                                 SnackbarDuration.Short
-                             )
-                         }
+            OutlinedTextField(
+                modifier = Modifier.padding(bottom = 8.dp, end = 24.dp),
+                value = editedName,
+                maxLines = 1,
+                onValueChange = { editedName = it },
+                label = { Text("Название") }
+            )
+            OutlinedTextField(
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.padding(bottom = 28.dp, end = 24.dp),
+                value = editedCost,
+                maxLines = 1,
+                onValueChange = { if (it.length < 4) editedCost = it },
+                label = { Text("Цена") }
+            )
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 8.dp, bottom = 8.dp)
+            ) {
+                TextButton(onClick = {
+                    if (dao.deleteBook(book) == 1) {
+                        closeLambda(true)
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                "${book.name} удалена",
+                                "ОК",
+                                SnackbarDuration.Short
+                            )
+                        }
                     }
-                    closeLambda(false)
-                }
-            ) { Text("СОХРАНИТЬ") }
-        },
-        dismissButton = {
-            TextButton(onClick = {
-                if (dao.deleteBook(book) == 1) {
-                    closeLambda(true)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            "${book.name} удалена",
-                            "ОК",
-                            SnackbarDuration.Short
-                        )
+                }) { Text("УДАЛИТЬ") }
+                TextButton(
+                    enabled = editedName.length > 3 && try { editedCost.toInt() > 0 } catch (_: Exception) { false },
+                    onClick = {
+                        if (dao.updateBook(book.id, editedName, editedCost.toInt()) == 1) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "${book.name} изменена",
+                                    "OK",
+                                    SnackbarDuration.Short
+                                )
+                            }
+                        }
+                        closeLambda(false)
                     }
-            } }) { Text("УДАЛИТЬ") }
+                ) { Text("СОХРАНИТЬ") }
+            }
         }
-    )
+    }
 }
 
 @ExperimentalComposeUiApi
@@ -179,33 +186,34 @@ fun CreateItemDialog(
     var expanded by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = { closeLambda() }) {
-        Column (
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colors.surface)
-                .height(intrinsicSize = IntrinsicSize.Min)
-                .width(IntrinsicSize.Max)
+        Column(modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colors.surface)
+            .height(intrinsicSize = IntrinsicSize.Min)
+            .width(IntrinsicSize.Max)
+            .padding(24.dp, 0.dp, 0.dp, 0.dp)
         ) {
-            Text("Набор книг",
-                modifier = Modifier.padding(24.dp),
-                style = MaterialTheme.typography.h6,
-                //fontWeight = FontWeight.W600
-            )
-            Divider()
-            //Dropdown
-            Row(
-                Modifier
+            Box(Modifier.height(56.dp)) {
+                Text("Комплект",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                )
+            }
+            Row(Modifier
                     .clickable { expanded = !expanded }
-                    .padding(24.dp, 16.dp, 24.dp, 16.dp),
+                    .padding(bottom = 16.dp, end = 24.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 //verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = currentBook.name,
                     style = MaterialTheme.typography.body1,
+                    maxLines = 2,
                     modifier = Modifier
                         .padding(end = 8.dp)
-                        .fillMaxWidth(0.9f), maxLines = 2)
+                        .fillMaxWidth(0.9f),
+                    )
                 Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "")
                 DropdownMenu(expanded = expanded, modifier = Modifier.height(250.dp), onDismissRequest = {
                     expanded = false
@@ -216,23 +224,25 @@ fun CreateItemDialog(
                                 expanded = false
                                 currentBook = book
                             },
-                        ) { Text(text = book.name) }
+                        ) { Text(text = book.name, style = MaterialTheme.typography.body1) }
                     }
                 }
             }
             OutlinedTextField(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.padding(24.dp, 0.dp, 24.dp, 36.dp),
+                modifier = Modifier.padding(end = 24.dp, bottom = 0.dp),
                 value = amount,
                 onValueChange = { amount = if (it.length < 4) it else amount},
                 label = { Text("Количество") }
             )
-            Column (horizontalAlignment = Alignment.End, modifier = Modifier.width(IntrinsicSize.Max)) {
-                Button(
+            Box(
+                contentAlignment = Alignment.BottomEnd,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                TextButton(
+                    enabled = try { amount.toInt() > 0 } catch (_: Exception) { false },
                     modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
                     onClick = {
-                        //dao.updateBook(Book(book.id, book.name, book.))
-                        val item = Item(1, currentBook.name, currentBook.cost, amount.toInt())
                         if (dao.insertItem(currentBook.name, currentBook.cost, amount.toInt()) > 0) {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
@@ -248,86 +258,7 @@ fun CreateItemDialog(
             }
         }
     }
-
 }
-
-//@Composable
-//fun EdiItemDialog(
-//    dao: BookDao,
-//    item: Item,
-//    coroutineScope: CoroutineScope,
-//    snackbarHostState: SnackbarHostState,
-//    closeLambda: (delete: Boolean) -> Unit
-//) {
-//    var editedName by remember { mutableStateOf(item.name) }
-//    var editedCost by remember { mutableStateOf(book.cost.toString()) }
-//
-//    AlertDialog(
-//        onDismissRequest = { closeLambda(false) },
-//        title = {
-//            Row(horizontalArrangement = Arrangement.SpaceBetween) {
-//                Text(
-//                    text = "Изменение книги",
-//                    modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp),
-//                )
-//                IconButton(
-//                    onClick = {
-//                        if (dao.deleteBook(book) == 1) {
-//                            closeLambda(true)
-//                            coroutineScope.launch {
-//                                snackbarHostState.showSnackbar(
-//                                    "${book.name} удалена",
-//                                    "ОК",
-//                                    SnackbarDuration.Short
-//                                )
-//                            }
-//                        }
-//                    }
-//                ) { Icon(painterResource(R.drawable.ic_delete), "Delete") }
-//            }
-//        },
-//        text = {
-//            Column() {
-//                OutlinedTextField(
-//                    modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp),
-//                    value = editedName,
-//                    onValueChange = { editedName = it },
-//                    label = { Text("Название") }
-//                )
-//                OutlinedTextField(
-//                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//                    modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 0.dp),
-//                    value = editedCost,
-//                    onValueChange = { if ((it != "-") or (it != ".")) editedCost = it },
-//                    label = { Text("Цена") }
-//                )
-//            }
-//        },
-//        confirmButton = {
-//            Button(
-//                onClick = {
-//                    //dao.updateBook(Book(book.id, book.name, book.))
-//                    if (dao.updateBook(book.id, editedName, editedCost.toInt()) == 1) {
-//                        coroutineScope.launch {
-//                            snackbarHostState.showSnackbar(
-//                                "${book.name} изменена",
-//                                "OK",
-//                                SnackbarDuration.Short
-//                            )
-//                        }
-//                    }
-//                    closeLambda(false)
-//                }
-//            ) { Text("Изменить") }
-//        },
-//        dismissButton = {
-//            Button(onClick = { closeLambda(false) }) { Text("Отменить") }
-//        }
-//    )
-//}
-
-
-
 
 
 
