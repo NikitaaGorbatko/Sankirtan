@@ -17,13 +17,13 @@ import androidx.compose.ui.unit.dp
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-fun BooksScreen(books: List<Book>, a: Boolean, onEditDialog: (book: Book) -> Unit) {
+fun BooksScreen(books: List<Book>, onEditDialog: (book: Book) -> Unit) {
     LazyColumn(
         modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 60.dp),
         //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         //verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (a) { items(books) { book: Book -> BookCard(book, onEditDialog) } }
+        items(books) { book: Book -> BookCard(book, onEditDialog) }
     }
 }
 
@@ -31,19 +31,16 @@ fun BooksScreen(books: List<Book>, a: Boolean, onEditDialog: (book: Book) -> Uni
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
+private fun BookCard(book: Book, onEditDialog: (book: Book) -> Unit) {
     Column(
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
-            .clickable {
-                onClickDialog(book)
-            },//.height(64.dp),
-        verticalArrangement = Arrangement.Center
+            .clickable { onEditDialog(book) }
     ) {
         Text(
             book.name,
-            //color = MaterialTheme.colors.onPrimary,
             maxLines = 1,
             fontSize = TextUnit(16f, TextUnitType.Sp),
             modifier = Modifier.padding(16.dp, 10.dp, 16.dp, 2.dp)
@@ -51,7 +48,6 @@ private fun BookCard(book: Book, onClickDialog: (book: Book) -> Unit) {
         Text(
             book.cost.toString() + "₽",
             style = MaterialTheme.typography.body2,
-            fontSize = TextUnit(14f, TextUnitType.Sp),
             modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
         )
     }

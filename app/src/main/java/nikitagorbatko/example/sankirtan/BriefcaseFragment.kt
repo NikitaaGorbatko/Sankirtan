@@ -24,7 +24,7 @@ import java.awt.font.TextAttribute
 @Composable
 fun BriefcaseScreen(
     items: List<Item>,
-    addItemLambda: () -> Unit
+    addItemLambda: (item: Item) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 60.dp),
@@ -40,12 +40,12 @@ fun BriefcaseScreen(
 @Composable
 fun BriefcaseBookCard(
     item: Item,
-    addItemLambda: () -> Unit
+    addItemLambda: (item: Item) -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.height(72.dp).clickable { addItemLambda() }
+        modifier = Modifier.height(72.dp).clickable { addItemLambda(item) }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(0.85f),
@@ -53,23 +53,20 @@ fun BriefcaseBookCard(
         ) {
             Text(
                 item.name,
-                //color = MaterialTheme.colors.onPrimary,
                 maxLines = 1,
                 fontSize = TextUnit(16f, TextUnitType.Sp),
                 modifier = Modifier.padding(16.dp, 10.dp, 16.dp, 2.dp)
             )
             Text(
-                item.cost.toString() + "₽",
-                //color = Color(0x57FFFFFF),
-                fontSize = TextUnit(14f, TextUnitType.Sp),
+                item.cost.toString() + "₽ x ${item.amount}шт = ${item.cost * item.amount}₽",
+                style = MaterialTheme.typography.body2,
                 modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
             )
         }
         Column() {
             Text("", modifier = Modifier.padding(16.dp, 10.dp, 16.dp, 2.dp))
             Text(item.amount.toString() + "шт",
-                //color = Color(0X57FFFFFF),
-                fontSize = TextUnit(14f, TextUnitType.Sp),
+                style = MaterialTheme.typography.body2,
                 textAlign = TextAlign.End,
                 modifier = Modifier.padding(0.dp, 0.dp, 16.dp, 10.dp).fillMaxWidth()
             )

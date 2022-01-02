@@ -29,12 +29,12 @@ fun CreateBookDialog(
     books: List<Book>,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    closeLambda: () -> Unit
+    close: () -> Unit
 ) {
     var bookName by remember { mutableStateOf("") }
     var bookCost by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = { closeLambda() }) {
+    Dialog(onDismissRequest = { close() }) {
         Column(modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colors.surface)
@@ -83,7 +83,7 @@ fun CreateBookDialog(
                                 )
                             }
                         }
-                        closeLambda()
+                        close()
                     }
                 ) { Text("ДОБАВИТЬ", style = MaterialTheme.typography.button) }
             }
@@ -98,12 +98,12 @@ fun EditBookDialog(
     book: Book,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    closeLambda: (delete: Boolean) -> Unit
+    close: () -> Unit
 ) {
     var editedName by remember { mutableStateOf(book.name) }
     var editedCost by remember { mutableStateOf(book.cost.toString()) }
 
-    Dialog(onDismissRequest = { closeLambda(false) }) {
+    Dialog(onDismissRequest = { close() }) {
         Column(modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colors.surface)
@@ -142,7 +142,7 @@ fun EditBookDialog(
             ) {
                 TextButton(onClick = {
                     if (dao.deleteBook(book) == 1) {
-                        closeLambda(true)
+                        close()
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar(
                                 "${book.name} удалена",
@@ -164,7 +164,7 @@ fun EditBookDialog(
                                 )
                             }
                         }
-                        closeLambda(false)
+                        close()
                     }
                 ) { Text("СОХРАНИТЬ") }
             }
@@ -179,13 +179,13 @@ fun CreateItemDialog(
     books: List<Book>,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-    closeLambda: () -> Unit
+    close: () -> Unit
 ) {
     var amount by remember { mutableStateOf("0") }
     var currentBook by remember { mutableStateOf(books[0]) }
     var expanded by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = { closeLambda() }) {
+    Dialog(onDismissRequest = { close() }) {
         Column(modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colors.surface)
@@ -200,7 +200,8 @@ fun CreateItemDialog(
                         .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                 )
             }
-            Row(Modifier
+            Row(
+                Modifier
                     .clickable { expanded = !expanded }
                     .padding(bottom = 16.dp, end = 24.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -232,6 +233,7 @@ fun CreateItemDialog(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.padding(end = 24.dp, bottom = 0.dp),
                 value = amount,
+                maxLines = 1,
                 onValueChange = { amount = if (it.length < 4) it else amount},
                 label = { Text("Количество") }
             )
@@ -252,7 +254,7 @@ fun CreateItemDialog(
                                 )
                             }
                         }
-                        closeLambda()
+                        close()
                     }
                 ) { Text("ДОБАВИТЬ") }
             }
@@ -260,5 +262,80 @@ fun CreateItemDialog(
     }
 }
 
+
+@ExperimentalComposeUiApi
+@Composable
+fun EditItemDialog(item: Item, close: () -> Unit) {
+
+    var amount by remember { mutableStateOf(item.amount.toString()) }
+    var expanded by remember { mutableStateOf(false) }
+
+    Dialog(onDismissRequest = { close() }) {
+        Column(modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colors.surface)
+            .height(intrinsicSize = IntrinsicSize.Min)
+            .width(IntrinsicSize.Max)
+            .padding(24.dp, 0.dp, 0.dp, 0.dp)
+        ) {
+            Box(Modifier.height(56.dp)) {
+                Text("Комплект",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                )
+            }
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.body1,
+                maxLines = 2,
+                modifier = Modifier.padding(top = 0.dp, end = 24.dp, bottom = 16.dp)
+            )
+            OutlinedTextField(
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.padding(end = 24.dp, bottom = 28.dp),
+                value = amount,
+                maxLines = 1,
+                onValueChange = { amount = if (it.length < 4) it else amount},
+                label = { Text("Количество") }
+            )
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 8.dp, bottom = 8.dp)
+            ) {
+                TextButton(onClick = {
+//                    if (dao.deleteBook(book) == 1) {
+//                        close()
+//                        coroutineScope.launch {
+//                            snackbarHostState.showSnackbar(
+//                                "${book.name} удалена",
+//                                "ОК",
+//                                SnackbarDuration.Short
+//                            )
+//                        }
+//                    }
+                }) { Text("УДАЛИТЬ") }
+                TextButton(
+                    enabled = try { amount.toInt() > 0 } catch (_: Exception) { false },
+                    modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
+                    onClick = {
+//                        if (dao.insertItem(currentBook.name, currentBook.cost, amount.toInt()) > 0) {
+//                            coroutineScope.launch {
+//                                snackbarHostState.showSnackbar(
+//                                    "${currentBook.name} добавлена в портфель",
+//                                    "OK",
+//                                    SnackbarDuration.Short
+//                                )
+//                            }
+//                        }
+                        close()
+                    }
+                ) { Text("ИЗМЕНИТЬ") }
+            }
+        }
+    }
+}
 
 

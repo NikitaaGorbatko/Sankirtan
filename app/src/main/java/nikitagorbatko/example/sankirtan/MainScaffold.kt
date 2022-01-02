@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,16 +27,18 @@ fun MainScaffold(dao: BookDao) {
     var snackbarHostState = remember { SnackbarHostState() }
     var onCreateBookDialog by remember { mutableStateOf(false) }
     var onEditBookDialog by remember { mutableStateOf(false) }
-    var onAddBookDialog by remember { mutableStateOf(false) }
+    var onCreateItemDialog by remember { mutableStateOf(false) }
+    var onEditItemDialog by remember { mutableStateOf(false) }
+
     val route = remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(dao.getBooks()) }
     var items by remember { mutableStateOf(dao.getItems()) }
+
     lateinit var bookForDialog: Book
+    lateinit var itemForDialog: Item
     var totalCost = 0
 
-    items.forEach {
-        totalCost += it.cost * it.amount
-    }
+    items.forEach { totalCost += it.cost * it.amount }
 
     Scaffold(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
@@ -47,12 +51,12 @@ fun MainScaffold(dao: BookDao) {
                         BottomScreens.Books -> {
                             IconButton(
                                 onClick = { onCreateBookDialog = true },
-                                content = { Icon(Icons.Filled.Add, contentDescription = null) },
+                                content = { Icon(Icons.TwoTone.Add, contentDescription = null) },
                             )
                         }
                         BottomScreens.Briefcase -> {
                             IconButton(
-                                onClick = { onAddBookDialog = true },
+                                onClick = { onCreateItemDialog = true },
                                 content = { Icon(Icons.Filled.Add, contentDescription = null) },
                             )
                         }
@@ -63,12 +67,13 @@ fun MainScaffold(dao: BookDao) {
         },
         content = {
             when (route.value) {
-                BottomScreens.Books -> BooksScreen(books,true,) { book ->
+                BottomScreens.Books -> BooksScreen(books) {
+                    bookForDialog = it
                     onEditBookDialog = !onEditBookDialog
-                    bookForDialog = book
                 }
                 BottomScreens.Briefcase -> BriefcaseScreen(items) {
-                    onAddBookDialog = !onAddBookDialog
+                    itemForDialog = it
+                    onEditItemDialog = !onEditItemDialog
                 }
                 BottomScreens.Statistic -> StatisticScreen()
             }
@@ -87,12 +92,20 @@ fun MainScaffold(dao: BookDao) {
                 }
             }
 
-            if (onAddBookDialog) {
+            if (onCreateItemDialog) {
                 CreateItemDialog(dao, books, coroutineScope, snackbarHostState) {
-                    onAddBookDialog = !onAddBookDialog
+                    onCreateItemDialog = !onCreateItemDialog
                     items = dao.getItems()
                 }
             }
+
+            if (onEditItemDialog) {
+                EditItemDialog(item = itemForDialog) {
+                    onEditItemDialog = !onEditItemDialog
+                    items = dao.getItems()
+                }
+            }
+
         },
         bottomBar = {
             BottomNavigation(Modifier.height(60.dp)) {
