@@ -1,5 +1,7 @@
 package nikitagorbatko.example.sankirtan.ui.theme
 
+import android.provider.Telephony
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Typography
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -18,7 +20,7 @@ val Typography = Typography(
                 fontFamily = FontFamily.Default,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = Color(0xFF7A7A7A)
+                color = Color.Gray
         ),
 //        button = TextStyle(
 //                fontFamily = FontFamily.SansSerif

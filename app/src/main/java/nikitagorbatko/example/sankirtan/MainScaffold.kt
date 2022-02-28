@@ -1,6 +1,8 @@
 package nikitagorbatko.example.sankirtan
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.*
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.dp
 
 val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens.Statistic)
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -29,6 +32,7 @@ fun MainScaffold(dao: BookDao) {
     var onEditBookDialog by remember { mutableStateOf(false) }
     var onCreateItemDialog by remember { mutableStateOf(false) }
     var onEditItemDialog by remember { mutableStateOf(false) }
+    var onDeleteItemDialog by remember { mutableStateOf(false) }
 
     val route = remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(dao.getBooks()) }
@@ -71,17 +75,32 @@ fun MainScaffold(dao: BookDao) {
                     bookForDialog = it
                     onEditBookDialog = !onEditBookDialog
                 }
-                BottomScreens.Briefcase -> BriefcaseScreen(items) {
-                    itemForDialog = it
-                    onEditItemDialog = !onEditItemDialog
-                }
-                BottomScreens.Statistic -> StatisticScreen()
+                BottomScreens.Briefcase -> BriefcaseScreen(
+                    items,
+                    addItemLambda = {
+                        itemForDialog = it
+                        onEditItemDialog = !onEditItemDialog
+                    },
+                    deleteItemLambda = {
+                        //dao.deleteItem(it)
+                        itemForDialog = it
+                        onDeleteItemDialog = !onDeleteItemDialog
+                    }
+                )
+                BottomScreens.Statistic -> StatisticScreen(coroutineScope)
             }
 
             if (onCreateBookDialog) {
                 CreateBookDialog(dao, books, coroutineScope, snackbarHostState) {
                     onCreateBookDialog = !onCreateBookDialog
                     books = dao.getBooks()
+                }
+            }
+
+            if (onDeleteItemDialog) {
+                DeleteItemDialog(dao, itemForDialog, coroutineScope, snackbarHostState) {
+                    onDeleteItemDialog = !onDeleteItemDialog
+                    items = dao.getItems()
                 }
             }
 
@@ -100,7 +119,7 @@ fun MainScaffold(dao: BookDao) {
             }
 
             if (onEditItemDialog) {
-                EditItemDialog(item = itemForDialog) {
+                EditItemDialog(item = itemForDialog, dao = dao, coroutineScope = coroutineScope, snackbarHostState = snackbarHostState) {
                     onEditItemDialog = !onEditItemDialog
                     items = dao.getItems()
                 }

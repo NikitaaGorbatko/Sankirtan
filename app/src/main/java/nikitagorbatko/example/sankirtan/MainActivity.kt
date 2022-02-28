@@ -25,7 +25,7 @@ import nikitagorbatko.example.sankirtan.ui.theme.SankirtanTheme
 class MainActivity : ComponentActivity() {
 
     //with lambdas...
-    val lambda = { x: Int, y: Int -> x + y}
+    val lambda = { x: Int, y: Int -> x + y }
 
     @ExperimentalComposeUiApi
     @ExperimentalAnimationApi
@@ -42,6 +42,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
 //    @ExperimentalUnitApi
 //    @Preview(showBackground = true)

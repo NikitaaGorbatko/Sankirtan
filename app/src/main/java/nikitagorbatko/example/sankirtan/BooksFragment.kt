@@ -31,7 +31,10 @@ fun BooksScreen(books: List<Book>, onEditDialog: (book: Book) -> Unit) {
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-private fun BookCard(book: Book, onEditDialog: (book: Book) -> Unit) {
+private fun BookCard(
+    book: Book,
+    onEditDialog: (book: Book) -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
