@@ -238,7 +238,7 @@ fun CreateItemDialog(
                     enabled = try { amount.toInt() > 0 } catch (_: Exception) { false },
                     modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
                     onClick = {
-                        if (dao.insertItem(currentBook.name, currentBook.cost, amount.toInt()) > 0) {
+                        if (dao.insertItem(currentBook.name, currentBook.cost, amount.toInt()      ) > 0) {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
                                     "${currentBook.name} добавлена в портфель",

@@ -17,7 +17,16 @@ data class Item(
     @PrimaryKey val id: Int,
     val name: String,
     val cost: Int,
-    var amount: Int
+    var amount: Int,
+)
+
+@Entity(tableName = "distributed")
+data class DistributedItem(
+    @PrimaryKey val id: Int,
+    val name: String,
+    val cost: Int,
+    var amount: Int,
+    var date: String
 )
 
 @Dao
@@ -33,6 +42,18 @@ interface BookDao {
 
     @Delete
     fun deleteBook(book: Book): Int
+
+    @Query("SELECT * FROM distributed")
+    fun getDistributedItems(): MutableList<DistributedItem>
+
+    @Query("INSERT INTO distributed (name, cost, amount, date) VALUES(:name, :cost, :amount, :date)")
+    fun insertDistributedItem(name: String, cost: Int, amount: Int, date: String): Long
+
+//    @Query("UPDATE distributed_item SET amount = :amount WHERE id = :itemId")
+//    fun updateDistributedItem(itemId: Int, amount: Int): Int
+
+    @Delete
+    fun deleteDistributedItem(distributed_item: Item): Int
 
     @Query("SELECT * FROM item")
     fun getItems(): MutableList<Item>
