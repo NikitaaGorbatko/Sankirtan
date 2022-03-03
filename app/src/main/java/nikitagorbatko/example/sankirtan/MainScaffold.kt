@@ -38,6 +38,8 @@ fun MainScaffold(dao: BookDao) {
     val route = remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(dao.getBooks()) }
     var items by remember { mutableStateOf(dao.getItems()) }
+    //можно добавить еще одну вклаадку с молитвами санкиртанщиков
+    //можно вставить возможность задонатить
 
     lateinit var bookForDialog: Book
     lateinit var itemForDialog: Item

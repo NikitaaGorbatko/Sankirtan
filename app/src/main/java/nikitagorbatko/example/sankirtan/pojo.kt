@@ -1,9 +1,6 @@
 package nikitagorbatko.example.sankirtan
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.room.*
-import kotlin.coroutines.coroutineContext
 
 @Entity(tableName = "book")
 data class Book(

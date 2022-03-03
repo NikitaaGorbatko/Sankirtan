@@ -1,30 +1,24 @@
 package nikitagorbatko.example.sankirtan
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.time.YearMonth
 import java.util.*
-import kotlin.time.days
 
 @RequiresApi(Build.VERSION_CODES.O)
 //@SuppressLint("CoroutineCreationDuringComposition")
@@ -37,23 +31,15 @@ fun StatisticScreen(coroutineScope: CoroutineScope) {
 @Composable
 fun MonthCard() {
     val calendar = GregorianCalendar.getInstance()
-    val monthNum = calendar.get(GregorianCalendar.MONTH) + 1
+    val monthNum = calendar.get(GregorianCalendar.MONTH)
     val year = calendar.get(GregorianCalendar.YEAR)
-    val days = YearMonth.of(year, monthNum).lengthOfMonth()
-    var day = calendar.get(GregorianCalendar.DAY_OF_MONTH)
-    val dayOfWeek = calendar.get(GregorianCalendar.DAY_OF_WEEK) - 1
-
-    val firstDayOfMonthDay = 8 - (day - dayOfWeek) % 7
-
+    val days = YearMonth.of(year, monthNum + 1).lengthOfMonth()
+    val testCalendar = GregorianCalendar(year, monthNum, 1)
+    val firstDayOfFirstWeek = testCalendar.get(GregorianCalendar.DAY_OF_WEEK)
     val months = stringArrayResource(R.array.months)
-    val month = months[monthNum - 1]
-    var counter = 1
+    val month = months[monthNum]
 
-    if (day > 7) {
-        day -= dayOfWeek
-        day %= 7
-    }
-    val firstDayOfFirstWeek = 7 - day + 1
+    var counter = 1
 
     Card(
         elevation = 4.dp,
@@ -147,12 +133,12 @@ enum class Style {
 
 @Composable
 fun Day(num: String, isWeekend: Boolean = false, style: Style = Style.BODY1) {
-    Text(
-        text = num,
-        style = if (style == Style.BODY1) { MaterialTheme.typography.body1 } else { MaterialTheme.typography.body2 },
-        modifier = Modifier.size(40.dp).clickable {
-            //extract data from the database and present it to user
-        },
-        textAlign = TextAlign.Center
-    )
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(40.dp).clip(CircleShape).clickable {  }) {
+        Text(
+            text = num,
+            style = if (style == Style.BODY1) { MaterialTheme.typography.body1 } else { MaterialTheme.typography.body2 },
+            textAlign = TextAlign.Center
+        )
+    }
+
 }
