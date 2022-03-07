@@ -1,8 +1,10 @@
 package nikitagorbatko.example.sankirtan
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -27,6 +29,7 @@ class MainActivity : ComponentActivity() {
     //with lambdas...
     val lambda = { x: Int, y: Int -> x + y }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalComposeUiApi
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi

@@ -19,7 +19,10 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.lang.Exception
+import java.util.*
 
 
 //Create book dialog
@@ -267,6 +270,7 @@ fun EditItemDialog(
 ) {
     var amount by remember { mutableStateOf(item.amount.toString()) }
     var isError by remember { mutableStateOf(false) }
+    var distributedAmount = amount
 
     Dialog(onDismissRequest = { close() }) {
         Column(modifier = Modifier
@@ -295,8 +299,10 @@ fun EditItemDialog(
                 value = amount,
                 maxLines = 1,
                 onValueChange = {
+                    val value = if (it.isNotEmpty()) { it.toInt() } else 0
                     amount = if (it.length < 4) it else amount
-                    isError = if (it.isNotEmpty()) it.toInt() > item.amount else false
+                    distributedAmount = value.toString()
+                    isError = if (it.isNotEmpty()) value > item.amount else false
                 },
                 label = { Text("Количество") },
                 isError = isError
@@ -319,16 +325,31 @@ fun EditItemDialog(
                     enabled = try { amount.toInt() > 0 && amount.toInt() <= item.amount } catch (_: Exception) { false },
                     modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
                     onClick = {
-//                        if (dao.updateItem(item.id, amount.toInt()) > 0) {
-//                            coroutineScope.launch {
-//                                snackbarHostState.showSnackbar(
-//                                    "${item.name} комплект изменен",
-//                                    "OK",
-//                                    SnackbarDuration.Short
-//                                )
-//                            }
-//                        }
-//                        close()
+                        val resultAmount = item.amount - distributedAmount.toInt()
+                        if (resultAmount > 0) {
+                            if (dao.updateItem(item.id, item.amount - distributedAmount.toInt()) > 0) {
+                                dao.insertDistributedItem(item.name, item.cost, distributedAmount.toInt(), CalendarProvider.calendar.time.time)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Книги распространены",
+                                        "OK",
+                                        SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        } else {
+                            if (dao.deleteItem(item) > 0) {
+                                dao.insertDistributedItem(item.name, item.cost, item.amount, CalendarProvider.calendar.time.time)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Книги распространены",
+                                        "OK",
+                                        SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        }
+                        close()
                     }
                 ) { Text("РАСПРОСТРАНИТЬ") }
             }

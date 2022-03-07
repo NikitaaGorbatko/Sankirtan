@@ -26,20 +26,18 @@ val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens
 @ExperimentalUnitApi
 @Composable
 fun MainScaffold(dao: BookDao) {
-    var coroutineScope = rememberCoroutineScope()
-    var snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var onCreateBookDialog by remember { mutableStateOf(false) }
     var onEditBookDialog by remember { mutableStateOf(false) }
     var onCreateItemDialog by remember { mutableStateOf(false) }
     var onEditItemDialog by remember { mutableStateOf(false) }
     var onDeleteItemDialog by remember { mutableStateOf(false) }
 
-
-    val route = remember { mutableStateOf(screens[0]) }
+    var route by remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(dao.getBooks()) }
     var items by remember { mutableStateOf(dao.getItems()) }
-    //можно добавить еще одну вклаадку с молитвами санкиртанщиков
-    //можно вставить возможность задонатить
+    var distributedItems by remember { mutableStateOf(dao.getDistributedItems()) }
 
     lateinit var bookForDialog: Book
     lateinit var itemForDialog: Item
@@ -51,10 +49,10 @@ fun MainScaffold(dao: BookDao) {
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
         topBar = {
             TopAppBar(
-                title = { Text(route.value.title + if(route.value == BottomScreens.Briefcase) {" ($totalCost руб)"} else "") },
+                title = { Text(route.title + if(route == BottomScreens.Briefcase) {" ($totalCost руб)"} else "") },
                 elevation = 12.dp,
                 actions = {
-                    when (route.value) {
+                    when (route) {
                         BottomScreens.Books -> {
                             IconButton(
                                 onClick = { onCreateBookDialog = true },
@@ -73,7 +71,7 @@ fun MainScaffold(dao: BookDao) {
             )
         },
         content = {
-            when (route.value) {
+            when (route) {
                 BottomScreens.Books -> BooksScreen(books) {
                     bookForDialog = it
                     onEditBookDialog = !onEditBookDialog
@@ -90,7 +88,7 @@ fun MainScaffold(dao: BookDao) {
                         onDeleteItemDialog = !onDeleteItemDialog
                     }
                 )
-                BottomScreens.Statistic -> StatisticScreen(coroutineScope)
+                BottomScreens.Statistic -> StatisticScreen(distributedItems, coroutineScope)
             }
 
             if (onCreateBookDialog) {
@@ -118,6 +116,7 @@ fun MainScaffold(dao: BookDao) {
                 CreateItemDialog(dao, books, coroutineScope, snackbarHostState) {
                     onCreateItemDialog = !onCreateItemDialog
                     items = dao.getItems()
+                    distributedItems = dao.getDistributedItems()
                 }
             }
 
@@ -125,6 +124,7 @@ fun MainScaffold(dao: BookDao) {
                 EditItemDialog(item = itemForDialog, dao = dao, coroutineScope = coroutineScope, snackbarHostState = snackbarHostState) {
                     onEditItemDialog = !onEditItemDialog
                     items = dao.getItems()
+                    distributedItems = dao.getDistributedItems()
                 }
             }
 
@@ -136,8 +136,8 @@ fun MainScaffold(dao: BookDao) {
                     BottomNavigationItem(
                         icon = { Icon(painterResource(id = screen.icon) , contentDescription = screen.title) },
                         label = { Text(screen.title) },
-                        selected = screen == route.value,
-                        onClick = { route.value = screen }
+                        selected = screen == route,
+                        onClick = { route = screen }
                     )
                 }
             }

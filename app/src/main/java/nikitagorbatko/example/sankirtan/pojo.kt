@@ -1,6 +1,8 @@
 package nikitagorbatko.example.sankirtan
 
 import androidx.room.*
+import kotlinx.serialization.Serializable
+import java.util.*
 
 @Entity(tableName = "book")
 data class Book(
@@ -23,7 +25,7 @@ data class DistributedItem(
     val name: String,
     val cost: Int,
     var amount: Int,
-    var date: String
+    var date: Long
 )
 
 @Dao
@@ -44,7 +46,7 @@ interface BookDao {
     fun getDistributedItems(): MutableList<DistributedItem>
 
     @Query("INSERT INTO distributed (name, cost, amount, date) VALUES(:name, :cost, :amount, :date)")
-    fun insertDistributedItem(name: String, cost: Int, amount: Int, date: String): Long
+    fun insertDistributedItem(name: String, cost: Int, amount: Int, date: Long): Long
 
 //    @Query("UPDATE distributed_item SET amount = :amount WHERE id = :itemId")
 //    fun updateDistributedItem(itemId: Int, amount: Int): Int
