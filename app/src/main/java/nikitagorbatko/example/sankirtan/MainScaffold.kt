@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens.Statistic)
 
@@ -92,7 +92,7 @@ fun MainScaffold(dao: BookDao) {
             }
 
             if (onCreateBookDialog) {
-                CreateBookDialog(dao, books, coroutineScope, snackbarHostState) {
+                CreateBookDialog(dao, coroutineScope, snackbarHostState) {
                     onCreateBookDialog = !onCreateBookDialog
                     books = dao.getBooks()
                 }
@@ -127,14 +127,14 @@ fun MainScaffold(dao: BookDao) {
                     distributedItems = dao.getDistributedItems()
                 }
             }
-
         },
+
         bottomBar = {
             BottomNavigation(Modifier.height(60.dp)) {
                 screens.forEach {
                         screen ->
                     BottomNavigationItem(
-                        icon = { Icon(painterResource(id = screen.icon) , contentDescription = screen.title) },
+                        icon = { Icon(painterResource(id = screen.icon), contentDescription = screen.title) },
                         label = { Text(screen.title) },
                         selected = screen == route,
                         onClick = { route = screen }
@@ -142,6 +142,9 @@ fun MainScaffold(dao: BookDao) {
                 }
             }
         },
+
+
     )
 }
+
 

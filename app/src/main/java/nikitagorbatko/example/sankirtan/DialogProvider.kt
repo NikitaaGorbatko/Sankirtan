@@ -19,17 +19,12 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.lang.Exception
-import java.util.*
-
 
 //Create book dialog
 @Composable
 fun CreateBookDialog(
     dao: BookDao,
-    books: List<Book>,
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     close: () -> Unit
@@ -45,7 +40,14 @@ fun CreateBookDialog(
             .width(IntrinsicSize.Max)
             .padding(24.dp, 0.dp, 0.dp, 0.dp)
         ) {
-
+            Box(Modifier.height(56.dp)) {
+                Text(
+                    text = "Новая книга",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                )
+            }
             OutlinedTextField(
                 modifier = Modifier.padding(bottom = 8.dp, end = 24.dp),
                 value = bookName,
@@ -328,7 +330,7 @@ fun EditItemDialog(
                         val resultAmount = item.amount - distributedAmount.toInt()
                         if (resultAmount > 0) {
                             if (dao.updateItem(item.id, item.amount - distributedAmount.toInt()) > 0) {
-                                dao.insertDistributedItem(item.name, item.cost, distributedAmount.toInt(), CalendarProvider.calendar.time.time)
+                                dao.insertDistributedItem(item.name, item.cost, distributedAmount.toInt(), Datee(CalendarProvider.day, CalendarProvider.monthNum, CalendarProvider.year).intDate)
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         "Книги распространены",
@@ -339,7 +341,7 @@ fun EditItemDialog(
                             }
                         } else {
                             if (dao.deleteItem(item) > 0) {
-                                dao.insertDistributedItem(item.name, item.cost, item.amount, CalendarProvider.calendar.time.time)
+                                dao.insertDistributedItem(item.name, item.cost, item.amount, Datee(CalendarProvider.day, CalendarProvider.monthNum, CalendarProvider.year).intDate)
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         "Книги распространены",

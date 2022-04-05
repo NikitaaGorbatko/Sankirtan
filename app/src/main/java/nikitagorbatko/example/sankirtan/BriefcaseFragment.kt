@@ -36,12 +36,22 @@ fun BriefcaseScreen(
     addItemLambda: (item: Item) -> Unit,
     deleteItemLambda: (item: Item) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 60.dp),
-        //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        //verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        items(items) { item: Item -> BriefcaseBookCard(item, addItemLambda, deleteItemLambda) }
+    if (items.isEmpty()) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+            Text(
+                "Портфель пуст",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.body2,
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 60.dp),
+            //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            //verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            items(items) { item: Item -> BriefcaseBookCard(item, addItemLambda, deleteItemLambda) }
+        }
     }
 }
 

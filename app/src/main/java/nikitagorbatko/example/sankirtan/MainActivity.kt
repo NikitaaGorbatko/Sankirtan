@@ -45,18 +45,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
-//    @ExperimentalUnitApi
-//    @Preview(showBackground = true)
-//    @Composable
-//    fun DefaultPreview() {
-//        val dao = BookRoomDatabase.getDatabase(applicationContext).bookDao()
-//        SankirtanTheme {
-//            AddBookDialog(dao = dao, books = dao.getBooks(), coroutineScope = , snackbarHostState = ) {
-//
-//            }
-//        }
-//    }
 }
 

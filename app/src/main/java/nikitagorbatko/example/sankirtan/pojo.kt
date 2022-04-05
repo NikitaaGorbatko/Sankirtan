@@ -25,7 +25,7 @@ data class DistributedItem(
     val name: String,
     val cost: Int,
     var amount: Int,
-    var date: Long
+    var date: Int
 )
 
 @Dao
@@ -46,7 +46,7 @@ interface BookDao {
     fun getDistributedItems(): MutableList<DistributedItem>
 
     @Query("INSERT INTO distributed (name, cost, amount, date) VALUES(:name, :cost, :amount, :date)")
-    fun insertDistributedItem(name: String, cost: Int, amount: Int, date: Long): Long
+    fun insertDistributedItem(name: String, cost: Int, amount: Int, date: Int): Long
 
 //    @Query("UPDATE distributed_item SET amount = :amount WHERE id = :itemId")
 //    fun updateDistributedItem(itemId: Int, amount: Int): Int
@@ -65,6 +65,13 @@ interface BookDao {
 
     @Delete
     fun deleteItem(item: Item): Int
+}
+
+data class Datee(val day: Int, val month: Int, val year: Int) {
+    val intDate: Int
+        get() = year * 10000 + month * 100 + day
+
+    constructor(date: Int) : this(date % 100, date % 10000, date / 10000)
 }
 
 sealed class BottomScreens(val title: String, val icon: Int) {
