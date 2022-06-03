@@ -1,32 +1,11 @@
-package nikitagorbatko.example.sankirtan
+package nikitagorbatko.example.sankirtan.room
 
-import androidx.room.*
-import kotlinx.serialization.Serializable
-import java.util.*
-
-@Entity(tableName = "book")
-data class Book(
-    @PrimaryKey val id: Int,
-    val name: String,
-    val cost: Int
-)
-
-@Entity(tableName = "item")
-data class Item(
-    @PrimaryKey val id: Int,
-    val name: String,
-    val cost: Int,
-    var amount: Int,
-)
-
-@Entity(tableName = "distributed")
-data class DistributedItem(
-    @PrimaryKey val id: Int,
-    val name: String,
-    val cost: Int,
-    var amount: Int,
-    var date: Int
-)
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Query
+import nikitagorbatko.example.sankirtan.room.Book
+import nikitagorbatko.example.sankirtan.room.DistributedItem
+import nikitagorbatko.example.sankirtan.room.Item
 
 @Dao
 interface BookDao {
@@ -65,17 +44,17 @@ interface BookDao {
 
     @Delete
     fun deleteItem(item: Item): Int
-}
 
-data class Datee(val day: Int, val month: Int, val year: Int) {
-    val intDate: Int
-        get() = year * 10000 + month * 100 + day
+    @Query("SELECT * FROM day")
+    fun getDays(): MutableList<Day>
 
-    constructor(date: Int) : this(date % 100, date % 10000, date / 10000)
-}
+    @Query("INSERT INTO day (day, donation) VALUES(:day, :donation)")
+    fun insertDay(day: Int, donation: Int): Long
 
-sealed class BottomScreens(val title: String, val icon: Int) {
-    object Books : BottomScreens("Книги", R.drawable.ic_books)
-    object Briefcase : BottomScreens("Портфель", R.drawable.ic_briefcase)
-    object Statistic : BottomScreens("Статистика", R.drawable.ic_statistic)
+    @Query("UPDATE day SET donation = :donation WHERE id = :dayId")
+    fun updateDay(dayId: Int, donation: Int): Int
+
+    @Delete
+    fun deleteDay(item: Day): Int
+
 }

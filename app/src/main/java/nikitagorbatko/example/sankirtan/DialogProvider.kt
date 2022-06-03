@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import nikitagorbatko.example.sankirtan.room.Book
+import nikitagorbatko.example.sankirtan.room.BookDao
+import nikitagorbatko.example.sankirtan.room.DateHolder
+import nikitagorbatko.example.sankirtan.room.Item
 import java.lang.Exception
 
 //Create book dialog
@@ -48,6 +52,7 @@ fun CreateBookDialog(
                         .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                 )
             }
+            //New_116
             OutlinedTextField(
                 modifier = Modifier.padding(bottom = 8.dp, end = 24.dp),
                 value = bookName,
@@ -60,7 +65,7 @@ fun CreateBookDialog(
                 modifier = Modifier.padding(bottom = 28.dp, end = 24.dp),
                 value = bookCost,
                 maxLines = 1,
-                onValueChange = { if (it.length < 4) bookCost = it },
+                onValueChange = { if (it.length < 6) bookCost = it },
                 label = { Text("Цена") }
             )
             Box(
@@ -129,7 +134,7 @@ fun EditBookDialog(
                 modifier = Modifier.padding(bottom = 28.dp, end = 24.dp),
                 value = editedCost,
                 maxLines = 1,
-                onValueChange = { if (it.length < 4) editedCost = it },
+                onValueChange = { if (it.length < 6) editedCost = it },
                 label = { Text("Цена") }
             )
             Row(
@@ -301,10 +306,12 @@ fun EditItemDialog(
                 value = amount,
                 maxLines = 1,
                 onValueChange = {
-                    val value = if (it.isNotEmpty()) { it.toInt() } else 0
-                    amount = if (it.length < 4) it else amount
-                    distributedAmount = value.toString()
-                    isError = if (it.isNotEmpty()) value > item.amount else false
+                    try {
+                        val value = if (it.isNotEmpty()) { it.toInt() } else 0
+                        amount = if (it.length < 4) it else amount
+                        distributedAmount = value.toString()
+                        isError = if (it.isNotEmpty()) value > item.amount else false
+                    } catch (ex: NumberFormatException) { }
                 },
                 label = { Text("Количество") },
                 isError = isError
@@ -330,7 +337,7 @@ fun EditItemDialog(
                         val resultAmount = item.amount - distributedAmount.toInt()
                         if (resultAmount > 0) {
                             if (dao.updateItem(item.id, item.amount - distributedAmount.toInt()) > 0) {
-                                dao.insertDistributedItem(item.name, item.cost, distributedAmount.toInt(), Datee(CalendarProvider.day, CalendarProvider.monthNum, CalendarProvider.year).intDate)
+                                dao.insertDistributedItem(item.name, item.cost, distributedAmount.toInt(), DateHolder(CalendarProvider.day, CalendarProvider.monthNum, CalendarProvider.year).intDate)
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         "Книги распространены",
@@ -341,7 +348,7 @@ fun EditItemDialog(
                             }
                         } else {
                             if (dao.deleteItem(item) > 0) {
-                                dao.insertDistributedItem(item.name, item.cost, item.amount, Datee(CalendarProvider.day, CalendarProvider.monthNum, CalendarProvider.year).intDate)
+                                dao.insertDistributedItem(item.name, item.cost, item.amount, DateHolder(CalendarProvider.day, CalendarProvider.monthNum, CalendarProvider.year).intDate)
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         "Книги распространены",

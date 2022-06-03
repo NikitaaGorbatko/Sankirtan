@@ -5,29 +5,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
+import nikitagorbatko.example.sankirtan.room.BookDataSource
+import nikitagorbatko.example.sankirtan.room.BookRoomDatabase
 import nikitagorbatko.example.sankirtan.ui.theme.SankirtanTheme
 
 
-class MainActivity : ComponentActivity() {
-
-    //with lambdas...
-    val lambda = { x: Int, y: Int -> x + y }
+class MainActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalComposeUiApi
@@ -36,12 +26,14 @@ class MainActivity : ComponentActivity() {
     @ExperimentalUnitApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val dao = BookRoomDatabase.getDatabase(applicationContext).bookDao()
+        val bookDataSource = BookDataSource(dao)
+
+        val model = ViewModelProvider(this).get(MainViewModel::class.java)
 
         setContent {
             SankirtanTheme {
-                MainScaffold(dao)
+                MainScaffold(bookDataSource, dao)//remove dao
             }
         }
     }

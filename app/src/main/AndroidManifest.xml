@@ -3,7 +3,7 @@
     package="nikitagorbatko.example.sankirtan">
     <!-- change allow backup to true -->
     <application
-
+        android:name=".SankirtanApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

@@ -1,6 +1,5 @@
 package nikitagorbatko.example.sankirtan
 
-
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -15,7 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
+import nikitagorbatko.example.sankirtan.room.Book
+import nikitagorbatko.example.sankirtan.room.BookDao
+import nikitagorbatko.example.sankirtan.room.BookDataSource
+import nikitagorbatko.example.sankirtan.room.Item
+import nikitagorbatko.example.sankirtan.views.StatisticScreen
 
 val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens.Statistic)
 
@@ -25,7 +28,7 @@ val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-fun MainScaffold(dao: BookDao) {
+fun MainScaffold(bookDataSource: BookDataSource, dao: BookDao) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var onCreateBookDialog by remember { mutableStateOf(false) }
@@ -35,9 +38,10 @@ fun MainScaffold(dao: BookDao) {
     var onDeleteItemDialog by remember { mutableStateOf(false) }
 
     var route by remember { mutableStateOf(screens[0]) }
-    var books by remember { mutableStateOf(dao.getBooks()) }
-    var items by remember { mutableStateOf(dao.getItems()) }
-    var distributedItems by remember { mutableStateOf(dao.getDistributedItems()) }
+    var books by remember { mutableStateOf(bookDataSource.books) }
+    var items by remember { mutableStateOf(bookDataSource.items) }
+    var distributedItems by remember { mutableStateOf(bookDataSource.distributedItems) }
+    var days by remember { mutableStateOf(bookDataSource.days) }
 
     lateinit var bookForDialog: Book
     lateinit var itemForDialog: Item
@@ -70,7 +74,9 @@ fun MainScaffold(dao: BookDao) {
                 }
             )
         },
+
         content = {
+            var a = 0
             when (route) {
                 BottomScreens.Books -> BooksScreen(books) {
                     bookForDialog = it
@@ -88,7 +94,17 @@ fun MainScaffold(dao: BookDao) {
                         onDeleteItemDialog = !onDeleteItemDialog
                     }
                 )
-                BottomScreens.Statistic -> StatisticScreen(distributedItems, coroutineScope)
+
+                BottomScreens.Statistic -> StatisticScreen(
+                    distributedItems,
+                    days,
+                    coroutineScope,
+                    snackbarHostState,
+                    dao,
+                    insertDayLambda = {
+                        days = dao.getDays()
+                    }
+                )
             }
 
             if (onCreateBookDialog) {
@@ -128,7 +144,6 @@ fun MainScaffold(dao: BookDao) {
                 }
             }
         },
-
         bottomBar = {
             BottomNavigation(Modifier.height(60.dp)) {
                 screens.forEach {
@@ -142,8 +157,11 @@ fun MainScaffold(dao: BookDao) {
                 }
             }
         },
-
-
+//        floatingActionButton = {
+//            FloatingActionButton(onClick = { }) {
+//
+//            }
+//        }
     )
 }
 
