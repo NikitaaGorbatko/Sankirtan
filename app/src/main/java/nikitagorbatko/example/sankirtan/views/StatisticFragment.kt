@@ -62,12 +62,18 @@ fun StatisticScreen(
     var monthNum by remember { mutableStateOf(CalendarProvider.monthNum) }
 
     //distributedItems.forEach{ totalCost += it.amount * it.cost }
-
     LazyColumn {
         item {
             MonthCard(
+                year = CalendarProvider.year,
                 monthNum = monthNum,
-                onMonthClick = {  },
+                onMonthClick = {
+                    if (it) {
+                        CalendarProvider.setMonth(++monthNum)
+                    } else {
+                        CalendarProvider.setMonth(--monthNum)
+                    }
+                },
                 clickedDay = clickedDay,
                 onItemClick = {
                     date: Int -> run {
@@ -251,10 +257,7 @@ fun StatisticScreen(
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-private fun DistributedItemCard(
-    book: DistributedItem,
-    onEditDialog: (book: Book) -> Unit = {  }
-) {
+private fun DistributedItemCard(book: DistributedItem) {
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -279,9 +282,16 @@ private fun DistributedItemCard(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MonthCard(monthNum: Int, onMonthClick: (b: Boolean) -> Unit, clickedDay: Int, onItemClick: (date: Int) -> Unit) {
+fun MonthCard(
+    year: Int,
+    monthNum: Int,
+    onMonthClick: (b: Boolean) -> Unit,
+    clickedDay: Int,
+    onItemClick: (date: Int) -> Unit
+) {
     val months = stringArrayResource(R.array.months)
-    val month = months[monthNum]
+    CalendarProvider.setMonth(monthNum)
+    val month = months[CalendarProvider.monthNum]
     var counter = 1
 
     Card(
@@ -297,21 +307,21 @@ fun MonthCard(monthNum: Int, onMonthClick: (b: Boolean) -> Unit, clickedDay: Int
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-//                IconButton(
-//                    onClick = { onMonthClick(false) },
-//                    content = { Icon(Icons.TwoTone.ArrowBack, contentDescription = null) },
-//                )
+                IconButton(
+                    onClick = { onMonthClick(false) },
+                    content = { Icon(Icons.TwoTone.ArrowBack, contentDescription = null) },
+                )
                 Box(Modifier.height(56.dp)) {
                     Text(
-                        text = month,
+                        text = "$year $month",
                         style = MaterialTheme.typography.h6,
                         modifier = Modifier.paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                     )
                 }
-//                IconButton(
-//                    onClick = { onMonthClick(true) },
-//                    content = { Icon(Icons.TwoTone.ArrowForward, contentDescription = null) },
-//                )
+                IconButton(
+                    onClick = { onMonthClick(true) },
+                    content = { Icon(Icons.TwoTone.ArrowForward, contentDescription = null) },
+                )
             }
 
             Row(
