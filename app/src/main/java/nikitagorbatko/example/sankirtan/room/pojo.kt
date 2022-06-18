@@ -1,6 +1,7 @@
 package nikitagorbatko.example.sankirtan.room
 
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "book")
 data class Book(
@@ -37,6 +38,6 @@ data class DateHolder(val day: Int, val month: Int, val year: Int) {
     val intDate: Int
         get() = year * 10000 + month * 100 + day
 
-    constructor(date: Int) : this(date % 100, date % 10000, date / 10000)
+    constructor(date: Int) : this(date % 100, (date % 10000 - (date % 100)) / 100, date / 10000)
 }
 

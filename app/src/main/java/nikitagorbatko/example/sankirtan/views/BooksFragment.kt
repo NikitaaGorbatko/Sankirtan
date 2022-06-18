@@ -5,15 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import nikitagorbatko.example.sankirtan.room.Book
-import java.util.Date
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -33,9 +35,9 @@ fun BooksScreen(books: List<Book>, onEditDialog: (book: Book) -> Unit) {
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
-private fun BookCard(
+fun BookCard(
     book: Book,
-    onEditDialog: (book: Book) -> Unit
+    onEditDialog: (book: Book) -> Unit = {}
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -56,6 +58,6 @@ private fun BookCard(
             modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
         )
     }
-    Divider()
+    Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
 }
 

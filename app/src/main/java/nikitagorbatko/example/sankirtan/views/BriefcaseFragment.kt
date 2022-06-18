@@ -7,40 +7,35 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import nikitagorbatko.example.sankirtan.room.Item
 import nikitagorbatko.example.sankirtan.ui.theme.Gray
-import org.intellij.lang.annotations.JdkConstants
-import java.awt.font.TextAttribute
 
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
 @Composable
 fun BriefcaseScreen(
     items: List<Item>,
-    addItemLambda: (item: Item) -> Unit,
+    distributeItemLambda: (item: Item) -> Unit,
     deleteItemLambda: (item: Item) -> Unit
 ) {
     if (items.isEmpty()) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+        Box(
+            contentAlignment = Alignment.Center, modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+        ) {
             Text(
-                "Портфель пуст",
+                "Портфель пуст, нажмите \"+\" для добавления.   ",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.body2,
             )
@@ -51,7 +46,25 @@ fun BriefcaseScreen(
             //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             //verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            items(items) { item: Item -> BriefcaseBookCard(item, addItemLambda, deleteItemLambda) }
+            items(items) { item: Item ->
+                BriefcaseBookCard(
+                    item,
+                    distributeItemLambda,
+                    deleteItemLambda
+                )
+            }
+            if (items.isNotEmpty()) {
+                item {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "Нажмите на элемент, чтобы распространить.",
+                            modifier = Modifier.padding(16.dp, 8.dp, 16.dp, 76.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.body2,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -96,7 +109,9 @@ fun BriefcaseBookCard(
                 Icon(
                     Icons.Outlined.Close,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp, 18.dp).padding(0.dp),
+                    modifier = Modifier
+                        .size(18.dp, 18.dp)
+                        .padding(0.dp),
                     tint = Gray,
                 )
             }
@@ -109,5 +124,5 @@ fun BriefcaseBookCard(
 //            )
         }
     }
-    Divider()
+    Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
 }

@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import java.time.YearMonth
 import java.util.*
+import kotlin.math.floor
 
 object CalendarProvider {
     private var calendar = GregorianCalendar.getInstance()//createCalendar()
@@ -29,17 +30,20 @@ object CalendarProvider {
 
         when (month_par) {
             in Int.MIN_VALUE..-13 -> {
-                val years = month_par / -11 + 1
+                val addition = if (month_par % 12 == 0) 0 else 1
+                val years = floor(month_par / -12 + 0.999).toInt() + addition
                 swipedYear = year_const - years
-                monthNum = 12 - month_par % -12
+                monthNum = 12 - ((month_par % 12) * -1)
+                if (monthNum == 12) monthNum = 0
             }
             in -12..-1 -> {
                 val years = 1
                 swipedYear = year_const - years
-                monthNum = month_par * -1 + 1
+                monthNum = 12 - month_par * -1
             }
             in 0..11 -> {
                 monthNum = month_par
+                swipedYear = year_const
             }
             in 12..Int.MAX_VALUE -> {
                 val years = month_par / 12

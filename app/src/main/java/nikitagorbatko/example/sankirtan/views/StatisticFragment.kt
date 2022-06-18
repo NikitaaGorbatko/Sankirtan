@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,11 +13,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.ArrowForward
+import androidx.compose.material.icons.twotone.Share
 import androidx.compose.runtime.*
-import nikitagorbatko.example.sankirtan.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,14 +27,49 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import nikitagorbatko.example.sankirtan.CalendarProvider
+import nikitagorbatko.example.sankirtan.R
 import nikitagorbatko.example.sankirtan.room.*
-import java.lang.Exception
+import java.util.*
 
 
+//class StatisticScreenViewModel: ViewModel() {
+//    private val _list = MutableLiveData(mutableListOf<DistributedItem>())
+//    val list: LiveData<MutableList<DistributedItem>> = _list
+//
+//    fun onListChange(list_param: MutableList<DistributedItem>) {
+//        _list.value = list_param
+//    }
+//}
+//
+//@ExperimentalAnimationApi
+//@ExperimentalMaterialApi
+//@ExperimentalUnitApi
+//@Composable
+//fun Statistic(
+//    statisticScreenViewModel: StatisticScreenViewModel = viewModel(),
+//    distributedItems: List<DistributedItem>,
+//    days: List<Day>,
+//    coroutineScope: CoroutineScope,
+//    snackbarHostState: SnackbarHostState,
+//    dao: BookDao,
+//    insertDayLambda: () -> Unit,
+//    liftStringLambda: (text: String) -> Unit
+//) {
+//    val list by statisticScreenViewModel.list.observeAsState()
+//
+//    StatisticScreen(
+//        distributedItems = distributedItems,
+//        days = days,
+//        coroutineScope = coroutineScope,
+//        snackbarHostState = snackbarHostState,
+//        dao = dao,
+//        insertDayLambda = insertDayLambda,
+//        liftStringLambda = liftStringLambda
+//    )
+//}
 
 @ExperimentalUnitApi
 @ExperimentalMaterialApi
@@ -51,51 +83,50 @@ fun StatisticScreen(
     coroutineScope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
     dao: BookDao,
-    insertDayLambda: () -> Unit
+    insertDayLambda: () -> Unit,
+    liftStringLambda: (text: String) -> Unit
 ) {
     var list by mutableStateOf(listOf<DistributedItem>())
     var donation by remember { mutableStateOf("0") }
     var totalCost = 0
     var savedDate = 0
     var localDay: Day? = null
-    var clickedDay by remember { mutableStateOf(0) }
+    var pickedDay by remember { mutableStateOf(0) }
     var monthNum by remember { mutableStateOf(CalendarProvider.monthNum) }
+    val stringBuilder = StringBuilder()//StringBuffer in other thread is preffered
 
     //distributedItems.forEach{ totalCost += it.amount * it.cost }
     LazyColumn {
         item {
+            //CalendarProvider.getInstance()
             MonthCard(
                 year = CalendarProvider.year,
                 monthNum = monthNum,
-                onMonthClick = {
+                onArrowClick = {
+                    list = mutableListOf()
+                    pickedDay = 0
                     if (it) {
                         CalendarProvider.setMonth(++monthNum)
                     } else {
                         CalendarProvider.setMonth(--monthNum)
                     }
                 },
-                clickedDay = clickedDay,
-                onItemClick = {
-                    date: Int -> run {
-                        donation = "0"
-                        savedDate = date
-                        list = listOf()
-                        localDay = null
-                        distributedItems.forEach { item ->
-                            if (item.date == date) {
-                                list = list.toMutableList().also { it.add(item) }
-                            }
-                        }
-                    }
-                    clickedDay = DateHolder(date).day
-                }
+                clickedDay = pickedDay,
+                onItemClick = { date, list_par ->
+                    donation = "0"
+                    savedDate = date
+                    localDay = null
+                    list = list_par
+                    pickedDay = DateHolder(date).day
+                },
+                list = distributedItems
             )
         }
         item {
             if (list.isEmpty()) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        "Нет книг в этот день.",
+                        "Нет книг в этот день.\nДобавьте их и распространите \nв секции \"Портфель\".",
                         modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 76.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.body2,
@@ -107,14 +138,22 @@ fun StatisticScreen(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
+                stringBuilder.clear()
+                val holder = DateHolder(savedDate)
+                val day = if (holder.day < 10) "0${holder.day}" else holder.day
+                val month = if (holder.month < 10) "0${holder.month}" else holder.month
+                val year = holder.year
+                stringBuilder.append("$day.$month.$year\n\n")
+
                 Column {
                     var expanded by remember { mutableStateOf(false) }
                     //donation = ""
-                    Card(
-                        elevation = 4.dp,
-                        shape = RoundedCornerShape(16.dp),
+                    Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
+                    Box(
+//                        elevation = 4.dp,
+//                        shape = RoundedCornerShape(16.dp),
                         modifier = Modifier
-                            .padding(16.dp, 0.dp, 16.dp, 16.dp)
+//                            .padding(16.dp, 0.dp, 16.dp, 16.dp)
                             .fillMaxWidth()
                     ) {
                         Column {
@@ -129,6 +168,10 @@ fun StatisticScreen(
                             list.forEach {
                                 totalCost += it.amount * it.cost
                                 DistributedItemCard(it)
+                                if (it.date == savedDate) {
+                                    stringBuilder
+                                        .append("${it.name}:\n${it.amount}шт по ${it.cost}руб = ${it.cost * it.amount}руб.\n\n")
+                                }
                             }
                         }
                     }
@@ -141,14 +184,53 @@ fun StatisticScreen(
                     ) {
                         Column {
                             Box(Modifier.height(56.dp)) {
-                                Text(
-                                    text = "Итог",
-                                    style = MaterialTheme.typography.h6,
-                                    modifier = Modifier
-                                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
-                                        .padding(start = 24.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Итог",
+                                        style = MaterialTheme.typography.h6,
+                                        modifier = Modifier
+                                            .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                                            .padding(start = 24.dp)
+                                    )
+                                    IconButton(
+                                        modifier = Modifier
+                                            .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                                            .padding(end = 24.dp),
+                                        onClick = {
+                                            if (stringBuilder.isEmpty()) {
+                                                list.forEach {
+                                                    if (it.date == savedDate) {
+                                                        totalCost += it.amount * it.cost
+                                                        stringBuilder
+                                                            .append("${it.name}:\n${it.amount}шт по ${it.cost}руб = ${it.cost * it.amount}руб.\n\n")
+                                                    }
+                                                }
+                                            }
+                                            stringBuilder.append(
+                                                "\nОптовая цена: ${totalCost}руб\nСбор: ${donation}руб\nРезультат: ${
+                                                    try {
+                                                        "${donation.toInt() - totalCost}руб"
+                                                    } catch (_: Exception) {
+                                                        "${-totalCost}руб"
+                                                    }
+                                                }"
+                                            )
+                                            liftStringLambda(stringBuilder.toString())
+                                            stringBuilder.clear()
+                                        },
+                                        content = {
+                                            Icon(
+                                                Icons.TwoTone.Share,
+                                                contentDescription = null
+                                            )
+                                        },
+                                    )
+                                }
                             }
+                            //Result calculator
                             Row {
                                 OutlinedTextField(
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -160,7 +242,7 @@ fun StatisticScreen(
                                     onValueChange = {
                                         if (it.length < 7) donation = it
                                     },
-                                    keyboardActions = KeyboardActions(onDone = {  }),
+                                    keyboardActions = KeyboardActions(onDone = { }),
                                     label = { Text("Сбор") }
                                 )
                                 OutlinedTextField(
@@ -171,7 +253,7 @@ fun StatisticScreen(
                                     value = totalCost.toString(),
                                     maxLines = 1,
                                     enabled = false,
-                                    onValueChange = {  },
+                                    onValueChange = { },
                                     //keyboardActions = KeyboardActions(onDone = {}),
                                     label = { Text("Стоимость") }
                                 )
@@ -191,13 +273,13 @@ fun StatisticScreen(
                                         .padding(8.dp, 0.dp, 0.dp, 28.dp)
                                         .width(100.dp),
                                     value = try {
-                                                "${donation.toInt() - totalCost}"
-                                            } catch(_: Exception) {
-                                                "${-totalCost}"
-                                            },
+                                        "${donation.toInt() - totalCost}"
+                                    } catch (_: Exception) {
+                                        "${-totalCost}"
+                                    },
                                     maxLines = 1,
                                     enabled = false,
-                                    onValueChange = {  },
+                                    onValueChange = { },
                                     //keyboardActions = KeyboardActions(onDone = {}),
                                     label = { Text("Результат") }
                                 )
@@ -211,15 +293,19 @@ fun StatisticScreen(
                                     modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
                                     onClick = {
                                         val dateHolder = DateHolder(
-                                            CalendarProvider.day,
+                                            pickedDay,
                                             CalendarProvider.monthNum,
-                                            CalendarProvider.year)
-
+                                            CalendarProvider.year
+                                        )
                                         if (donation == "0") {
                                             //Show snackbar or toast
                                         } else {
                                             if (localDay != null) {
-                                                if (dao.updateDay(localDay!!.id, donation.toInt()) > 0) {
+                                                if (dao.updateDay(
+                                                        localDay!!.id,
+                                                        donation.toInt()
+                                                    ) > 0
+                                                ) {
                                                     coroutineScope.launch {
                                                         snackbarHostState.showSnackbar(
                                                             "Сохранено",
@@ -229,7 +315,11 @@ fun StatisticScreen(
                                                     }
                                                 }
                                             } else {
-                                                if (dao.insertDay(dateHolder.intDate, donation.toInt()) > 0) {
+                                                if (dao.insertDay(
+                                                        dateHolder.intDate,
+                                                        donation.toInt()
+                                                    ) > 0
+                                                ) {
                                                     coroutineScope.launch {
                                                         snackbarHostState.showSnackbar(
                                                             "Сохранено",
@@ -241,7 +331,7 @@ fun StatisticScreen(
                                             }
                                             insertDayLambda()
                                         }
-                                        clickedDay = 0
+                                        //pickedDay = 0
                                     }
                                 ) { Text("СОХРАНИТЬ") }
                             }
@@ -252,6 +342,7 @@ fun StatisticScreen(
         }
     }
 }
+
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -277,7 +368,7 @@ private fun DistributedItemCard(book: DistributedItem) {
             modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
         )
     }
-    Divider()
+    Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -285,9 +376,10 @@ private fun DistributedItemCard(book: DistributedItem) {
 fun MonthCard(
     year: Int,
     monthNum: Int,
-    onMonthClick: (b: Boolean) -> Unit,
+    onArrowClick: (b: Boolean) -> Unit,
     clickedDay: Int,
-    onItemClick: (date: Int) -> Unit
+    onItemClick: (date: Int, list: List<DistributedItem>) -> Unit,
+    list: List<DistributedItem>,
 ) {
     val months = stringArrayResource(R.array.months)
     CalendarProvider.setMonth(monthNum)
@@ -296,7 +388,7 @@ fun MonthCard(
 
     Card(
         elevation = 4.dp,
-        shape = RoundedCornerShape(16.dp),
+//        shape = RoundedCornerShape(16.dp),
         modifier = Modifier.padding(16.dp)
     ) {
         Column(
@@ -304,22 +396,23 @@ fun MonthCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .paddingFrom(alignmentLine = FirstBaseline, 40.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
-                    onClick = { onMonthClick(false) },
+                    onClick = { onArrowClick(false) },
                     content = { Icon(Icons.TwoTone.ArrowBack, contentDescription = null) },
                 )
                 Box(Modifier.height(56.dp)) {
                     Text(
                         text = "$year $month",
                         style = MaterialTheme.typography.h6,
-                        modifier = Modifier.paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                     )
                 }
                 IconButton(
-                    onClick = { onMonthClick(true) },
+                    onClick = { onArrowClick(true) },
                     content = { Icon(Icons.TwoTone.ArrowForward, contentDescription = null) },
                 )
             }
@@ -340,17 +433,29 @@ fun MonthCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                for (i in 1 .. 7) {
+                for (i in 1..7) {
                     if (counter < CalendarProvider.days) {
                         if (i >= CalendarProvider.firstDayOfFirstWeek) {
-                            Day (
+                            val books = mutableListOf<DistributedItem>()
+                            list.forEach {
+                                if (it.date == DateHolder(
+                                        counter,
+                                        CalendarProvider.monthNum,
+                                        CalendarProvider.year
+                                    ).intDate
+                                ) {
+                                    books += it
+                                }
+                            }
+                            Day(
                                 num = "${counter++}",
-                                onClick = {
-                                    onItemClick(it)
+                                onClick = { date, list ->
+                                    onItemClick(date, list)
                                     //clickedDay = DateHolder(it).day
                                 },
                                 clicked = clickedDay == counter - 1,
-                                clickable = true
+                                clickable = true,
+                                list = books
                             )
                         } else {
                             Day()
@@ -362,15 +467,27 @@ fun MonthCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                for (i in 1 .. 7) {
-                    Day (
+                for (i in 1..7) {
+                    val books = mutableListOf<DistributedItem>()
+                    list.forEach {
+                        if (it.date == DateHolder(
+                                counter,
+                                CalendarProvider.monthNum,
+                                CalendarProvider.year
+                            ).intDate
+                        ) {
+                            books += it
+                        }
+                    }
+                    Day(
                         num = "${counter++}",
-                        onClick = {
-                            onItemClick(it)
+                        onClick = { date, list ->
+                            onItemClick(date, list)
                             //clickedDay = DateHolder(it).day
                         },
                         clicked = clickedDay == counter - 1,
-                        clickable = true
+                        clickable = true,
+                        list = books
                     )
                 }
             }
@@ -378,15 +495,27 @@ fun MonthCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                for (i in 1 .. 7) {
-                    Day (
+                for (i in 1..7) {
+                    val books = mutableListOf<DistributedItem>()
+                    list.forEach {
+                        if (it.date == DateHolder(
+                                counter,
+                                CalendarProvider.monthNum,
+                                CalendarProvider.year
+                            ).intDate
+                        ) {
+                            books += it
+                        }
+                    }
+                    Day(
                         num = "${counter++}",
-                        onClick = {
-                            onItemClick(it)
+                        onClick = { date, list ->
+                            onItemClick(date, list)
                             //clickedDay = DateHolder(it).day
                         },
                         clicked = clickedDay == counter - 1,
-                        clickable = true
+                        clickable = true,
+                        list = books
                     )
                 }
             }
@@ -395,16 +524,28 @@ fun MonthCard(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 if (counter <= CalendarProvider.days) {
-                    for (i in 1 .. 7) {
+                    for (i in 1..7) {
                         if (counter <= CalendarProvider.days) {
-                            Day (
+                            val books = mutableListOf<DistributedItem>()
+                            list.forEach {
+                                if (it.date == DateHolder(
+                                        counter,
+                                        CalendarProvider.monthNum,
+                                        CalendarProvider.year
+                                    ).intDate
+                                ) {
+                                    books += it
+                                }
+                            }
+                            Day(
                                 num = "${counter++}",
-                                onClick = {
-                                    onItemClick(it)
+                                onClick = { date, list ->
+                                    onItemClick(date, list)
                                     //clickedDay = DateHolder(it).day
                                 },
                                 clicked = clickedDay == counter - 1,
-                                clickable = true
+                                clickable = true,
+                                list = books
                             )
                         } else {
                             Day()
@@ -417,16 +558,28 @@ fun MonthCard(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 if (counter <= CalendarProvider.days) {
-                    for (i in 1 .. 7) {
+                    for (i in 1..7) {
                         if (counter <= CalendarProvider.days) {
-                            Day (
+                            val books = mutableListOf<DistributedItem>()
+                            list.forEach {
+                                if (it.date == DateHolder(
+                                        counter,
+                                        CalendarProvider.monthNum,
+                                        CalendarProvider.year
+                                    ).intDate
+                                ) {
+                                    books += it
+                                }
+                            }
+                            Day(
                                 num = "${counter++}",
-                                onClick = {
-                                    onItemClick(it)
+                                onClick = { date, list ->
+                                    onItemClick(date, list)
                                     //clickedDay = DateHolder(it).day
                                 },
                                 clicked = clickedDay == counter - 1,
-                                clickable = true
+                                clickable = true,
+                                list = books
                             )
                         } else {
                             Day()
@@ -441,16 +594,28 @@ fun MonthCard(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 if (counter <= CalendarProvider.days) {
-                    for (i in 1 .. 7) {
+                    for (i in 1..7) {
                         if (counter <= CalendarProvider.days) {
-                            Day (
+                            val books = mutableListOf<DistributedItem>()
+                            list.forEach {
+                                if (it.date == DateHolder(
+                                        counter,
+                                        CalendarProvider.monthNum,
+                                        CalendarProvider.year
+                                    ).intDate
+                                ) {
+                                    books += it
+                                }
+                            }
+                            Day(
                                 num = "${counter++}",
-                                onClick = {
-                                    onItemClick(it)
+                                onClick = { date, list ->
+                                    onItemClick(date, list)
                                     //clickedDay = DateHolder(it).day
                                 },
                                 clicked = clickedDay == counter - 1,
-                                clickable = true
+                                clickable = true,
+                                list = books
                             )
                         } else {
                             Day()
@@ -470,28 +635,57 @@ fun Day(
     num: String = "",
     style: Style = Style.BODY1,
     clickable: Boolean = false,
-    onClick: (date: Int) -> Unit = {},
+    onClick: (date: Int, list: List<DistributedItem>) -> Unit = { _, _ -> },
+    list: List<DistributedItem> = listOf(),
     clicked: Boolean = false
 ) {
     val modifier: Modifier = if (clickable) {
         val date = DateHolder(num.toInt(), CalendarProvider.monthNum, CalendarProvider.year)
         Modifier
-            .size(40.dp)
+            .size(38.dp)
+            .padding(1.dp)
             .clip(CircleShape)
             .background(if (clicked) Color.LightGray else Color.Unspecified)
-            .clickable { onClick(date.intDate) }
-    } else { Modifier.size(40.dp) }
+            .clickable { onClick(date.intDate, list) }
+            .border(
+                if (list.isNotEmpty()) BorderStroke(1.dp, Color.Black) else BorderStroke(
+                    0.dp,
+                    Color.Unspecified
+                ), shape = CircleShape
+            )
+    } else {
+        Modifier
+            .size(38.dp)
+            .padding(1.dp)
+    }
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
     ) {
         Text(
             text = num,
-            style = if (style == Style.BODY1) { MaterialTheme.typography.body1 } else { MaterialTheme.typography.body2 },
+            style = if (style == Style.BODY1) {
+                MaterialTheme.typography.body1
+            } else {
+                MaterialTheme.typography.body2
+            },
             textAlign = TextAlign.Center
         )
     }
 }
+
+//@ExperimentalUnitApi
+//@Preview
+//@Composable
+//fun Preview() {
+//    MonthCard(
+//        year = 2022,
+//        monthNum = 6,
+//        onArrowClick = {},
+//        clickedDay = 2,
+//        onItemClick = {}
+//    )
+//}
 
 
 
