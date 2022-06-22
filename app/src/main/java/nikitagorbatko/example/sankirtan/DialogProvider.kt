@@ -1,7 +1,5 @@
 package nikitagorbatko.example.sankirtan
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -200,7 +198,7 @@ fun EditBookDialog(
 
 @ExperimentalComposeUiApi
 @Composable
-fun CreateItemDialog(
+fun CreateBriefcaseItemDialog(
     dao: BookDao,
     books: List<Book>,
     coroutineScope: CoroutineScope,
@@ -210,6 +208,32 @@ fun CreateItemDialog(
     var amount by remember { mutableStateOf("0") }
     var currentBook by remember { mutableStateOf(books[0]) }
     var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf("") }
+
+    var textFieldSize by remember { mutableStateOf(Size.Zero) }
+
+    val interactionSource = remember {
+        object : MutableInteractionSource {
+            override val interactions = MutableSharedFlow<Interaction>(
+                extraBufferCapacity = 16,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST,
+            )
+
+            override suspend fun emit(interaction: Interaction) {
+                if (interaction is PressInteraction.Release) {
+                    expanded = !expanded
+                }
+
+                interactions.emit(interaction)
+            }
+
+            override fun tryEmit(interaction: Interaction): Boolean {
+                return interactions.tryEmit(interaction)
+            }
+        }
+    }
+
+    val icon = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown
 
     Dialog(onDismissRequest = { close() }) {
         Column(
@@ -218,6 +242,7 @@ fun CreateItemDialog(
                 .background(MaterialTheme.colors.surface)
                 .height(intrinsicSize = IntrinsicSize.Min)
                 .width(IntrinsicSize.Max)
+                //.padding(bottom = 16.dp, end = 24.dp),
                 .padding(24.dp, 0.dp, 0.dp, 0.dp)
         ) {
             Box(Modifier.height(56.dp)) {
@@ -228,41 +253,53 @@ fun CreateItemDialog(
                         .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                 )
             }
-            Row(
-                Modifier
-                    .clickable { expanded = !expanded }
-                    .padding(bottom = 16.dp, end = 24.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                //verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = currentBook.name,
-                    style = MaterialTheme.typography.body1,
-                    maxLines = 2,
+            Column {
+                OutlinedTextField(
+                    value = selectedText,
+                    onValueChange = { },
+                    readOnly = true,
+                    maxLines = 3,
+                    //enabled = false,
                     modifier = Modifier
-                        .padding(end = 8.dp)
-                        .fillMaxWidth(0.9f),
+                        .fillMaxWidth()
+                        .padding(end = 24.dp)
+                        .onGloballyPositioned { coordinates ->
+                            //This value is used to assign to the DropDown the same width
+                            textFieldSize = coordinates.size.toSize()
+                        },
+                    label = { Text("Книга") },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "contentDescription",
+                            modifier = Modifier.clickable { expanded = !expanded }
+                        )
+                    },
+                    interactionSource = interactionSource
                 )
-                Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "")
                 DropdownMenu(
                     expanded = expanded,
-                    modifier = Modifier.height(250.dp),
-                    onDismissRequest = {
-                        expanded = false
-                    }) {
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .height(350.dp)
+                        .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+                ) {
                     books.forEach { book ->
                         DropdownMenuItem(
                             onClick = {
-                                expanded = false
+                                selectedText = book.name
                                 currentBook = book
-                            },
-                        ) { Text(text = book.name, style = MaterialTheme.typography.body1) }
+                                expanded = false
+                            }
+                        ) {
+                            Text(text = book.name)
+                        }
                     }
                 }
             }
             OutlinedTextField(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.padding(end = 24.dp, bottom = 0.dp),
+                modifier = Modifier.padding(end = 24.dp, top = 8.dp, bottom = 18.dp),
                 value = amount,
                 maxLines = 1,
                 onValueChange = { amount = if (it.length < 4) it else amount },
@@ -302,157 +339,9 @@ fun CreateItemDialog(
     }
 }
 
-@ExperimentalUnitApi
-@ExperimentalMaterialApi
-@ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
-fun AddDistributedItemDialog(
-    dao: BookDao,
-    books: List<Book>,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    day: Int,
-    close: () -> Unit
-) {
-    var amount by remember { mutableStateOf("0") }
-    var currentBook by remember { mutableStateOf(books[0]) }
-    var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("") }
-
-    var textfieldSize by remember { mutableStateOf(Size.Zero) }
-
-    val interactionSource = remember {
-        object : MutableInteractionSource {
-            override val interactions = MutableSharedFlow<Interaction>(
-                extraBufferCapacity = 16,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST,
-            )
-
-            override suspend fun emit(interaction: Interaction) {
-                if (interaction is PressInteraction.Release) {
-                    // Clicked!
-                    expanded = !expanded
-                }
-
-                interactions.emit(interaction)
-            }
-
-            override fun tryEmit(interaction: Interaction): Boolean {
-                return interactions.tryEmit(interaction)
-            }
-        }
-    }
-
-    val icon = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown
-
-    Dialog(onDismissRequest = { close() }) {
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colors.surface)
-                //.height(intrinsicSize = IntrinsicSize.Min)
-                .width(IntrinsicSize.Max)
-                //.padding(bottom = 16.dp, end = 24.dp),
-                .padding(24.dp, 0.dp, 24.dp, 0.dp)
-        ) {
-            Box(Modifier.height(56.dp)) {
-                Text(
-                    "Комплект",
-                    style = MaterialTheme.typography.h6,
-                    modifier = Modifier
-                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
-                )
-            }
-            Column {
-                OutlinedTextField(
-                    value = selectedText,
-                    onValueChange = { },
-                    readOnly = true,
-                    //enabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onGloballyPositioned { coordinates ->
-                            //This value is used to assign to the DropDown the same width
-                            textfieldSize = coordinates.size.toSize()
-                        },
-                    label = { Text(currentBook.name) },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = "contentDescription",
-                            modifier = Modifier.clickable { expanded = !expanded }
-                        )
-                    },
-                    interactionSource = interactionSource
-                )
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier
-                        .height(350.dp)
-                        .width(with(LocalDensity.current) { textfieldSize.width.toDp() })
-                ) {
-                    books.forEach { book ->
-                        DropdownMenuItem(
-                            onClick = {
-                                selectedText = book.name
-                                expanded = false
-                            }
-                        ) {
-                            Text(text = book.name)
-                        }
-                    }
-                }
-            }
-            OutlinedTextField(
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.padding(end = 0.dp, top = 8.dp, bottom = 18.dp),
-                value = amount,
-                maxLines = 1,
-                onValueChange = { amount = if (it.length < 4) it else amount },
-                label = { Text("Количество") }
-            )
-            Box(
-                contentAlignment = Alignment.BottomEnd,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextButton(
-                    enabled = try {
-                        amount.toInt() > 0
-                    } catch (_: Exception) {
-                        false
-                    },
-                    modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
-                    onClick = {
-                        if (dao.insertDistributedItem(
-                                currentBook.name,
-                                currentBook.cost,
-                                amount.toInt(),
-                                day
-                            ) > 0
-                        ) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "${currentBook.name} Распространено",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
-                        }
-                        close()
-                    }
-                ) { Text("РАСПРОСТРАНИТЬ") }
-            }
-        }
-    }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@ExperimentalComposeUiApi
-@Composable
-fun EditItemDialog(
+fun EditBriefcaseItemDialog(
     dao: BookDao,
     item: Item,
     coroutineScope: CoroutineScope,
@@ -570,7 +459,7 @@ fun EditItemDialog(
 
 @ExperimentalComposeUiApi
 @Composable
-fun DeleteItemDialog(
+fun DeleteBriefcaseItemDialog(
     dao: BookDao,
     item: Item,
     coroutineScope: CoroutineScope,
@@ -625,4 +514,153 @@ fun DeleteItemDialog(
     }
 }
 
+@ExperimentalUnitApi
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@ExperimentalComposeUiApi
+@Composable
+fun AddDistributedItemDialog(
+    dao: BookDao,
+    books: List<Book>,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    date: Int,
+    close: () -> Unit
+) {
+    var amount by remember { mutableStateOf("0") }
+    var currentBook by remember { mutableStateOf(books[0]) }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedText by remember { mutableStateOf("") }
+
+    var textFieldSize by remember { mutableStateOf(Size.Zero) }
+
+    val interactionSource = remember {
+        object : MutableInteractionSource {
+            override val interactions = MutableSharedFlow<Interaction>(
+                extraBufferCapacity = 16,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST,
+            )
+
+            override suspend fun emit(interaction: Interaction) {
+                if (interaction is PressInteraction.Release) {
+                    expanded = !expanded
+                }
+
+                interactions.emit(interaction)
+            }
+
+            override fun tryEmit(interaction: Interaction): Boolean {
+                return interactions.tryEmit(interaction)
+            }
+        }
+    }
+
+    val icon = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown
+
+    Dialog(onDismissRequest = { close() }) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colors.surface)
+                .height(intrinsicSize = IntrinsicSize.Min)
+                .width(IntrinsicSize.Max)
+                //.padding(bottom = 16.dp, end = 24.dp),
+                .padding(24.dp, 0.dp, 0.dp, 0.dp)
+        ) {
+            Box(Modifier.height(56.dp)) {
+                Text(
+                    "Добавить к ${DateHolder(date).stringDate()}",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                )
+            }
+            Column {
+                OutlinedTextField(
+                    value = selectedText,
+                    onValueChange = { },
+                    readOnly = true,
+                    maxLines = 3,
+                    //enabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 24.dp)
+                        .onGloballyPositioned { coordinates ->
+                            //This value is used to assign to the DropDown the same width
+                            textFieldSize = coordinates.size.toSize()
+                        },
+                    label = { Text("Книга") },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = "contentDescription",
+                            modifier = Modifier.clickable { expanded = !expanded }
+                        )
+                    },
+                    interactionSource = interactionSource
+                )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .height(350.dp)
+                        .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+                ) {
+                    books.forEach { book ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedText = book.name
+                                currentBook = book
+                                expanded = false
+                            }
+                        ) {
+                            Text(text = book.name)
+                        }
+                    }
+                }
+            }
+            OutlinedTextField(
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.padding(end = 24.dp, top = 8.dp, bottom = 18.dp),
+                value = amount,
+                maxLines = 1,
+                onValueChange = { amount = if (it.length < 4) it else amount },
+                label = { Text("Количество") }
+            )
+            Box(
+                contentAlignment = Alignment.BottomEnd,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+            ) {
+                TextButton(
+                    enabled = try {
+                        amount.toInt() > 0 && selectedText.isNotEmpty() && selectedText != "Книга"
+                    } catch (_: Exception) {
+                        false
+                    },
+                    modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
+                    onClick = {
+                        if (dao.insertDistributedItem(
+                                currentBook.name,
+                                currentBook.cost,
+                                amount.toInt(),
+                                DateHolder(date).intDate
+                            ) > 0
+                        ) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "${currentBook.name} Распространено",
+                                    "OK",
+                                    SnackbarDuration.Short
+                                )
+                            }
+                        }
+                        close()
+                    }
+                ) { Text("РАСПРОСТРАНИТЬ") }
+            }
+        }
+    }
+}
 

@@ -39,5 +39,12 @@ data class DateHolder(val day: Int, val month: Int, val year: Int) {
         get() = year * 10000 + month * 100 + day
 
     constructor(date: Int) : this(date % 100, (date % 10000 - (date % 100)) / 100, date / 10000)
+
+
+    fun stringDate(): String {
+        val day = if (day < 10) "0${day}" else day
+        val month = if (month < 10) "0${month}" else month
+        return "$day.$month.$year"
+    }
 }
 

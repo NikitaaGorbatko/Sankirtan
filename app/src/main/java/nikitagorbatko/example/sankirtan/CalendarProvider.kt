@@ -1,8 +1,5 @@
 package nikitagorbatko.example.sankirtan
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import java.time.YearMonth
 import java.util.*
 import kotlin.math.floor
 
@@ -16,15 +13,14 @@ object CalendarProvider {
         private set
     var day = calendar.get(GregorianCalendar.DAY_OF_MONTH)
         private set
-    @RequiresApi(Build.VERSION_CODES.O)
-    var days = YearMonth.of(year, monthNum + 1).lengthOfMonth()
+    private val daysCalendar = GregorianCalendar(year, monthNum, 1)
+    var days = daysCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
         private set
     private var testCalendar = GregorianCalendar(year, monthNum, 1)
     private var dayOfWeek = testCalendar.get(GregorianCalendar.DAY_OF_WEEK)
     var firstDayOfFirstWeek = if (dayOfWeek == 1) 7 else dayOfWeek - 1
         private set
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun setMonth(month_par: Int) {
         var swipedYear = year
 
@@ -55,19 +51,20 @@ object CalendarProvider {
         calendar.set(swipedYear, monthNum, 1)
         day = calendar.get(GregorianCalendar.DAY_OF_MONTH)
         year = swipedYear
-        days = YearMonth.of(swipedYear, monthNum + 1).lengthOfMonth()
+        val daysCalendar = GregorianCalendar(swipedYear, monthNum, 1)
+        days = daysCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
         testCalendar = GregorianCalendar(swipedYear, monthNum, 1)
         dayOfWeek = testCalendar.get(GregorianCalendar.DAY_OF_WEEK)
         firstDayOfFirstWeek = if (dayOfWeek == 1) 7 else dayOfWeek - 1
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun getInstance() {
         calendar = GregorianCalendar.getInstance()
         monthNum = calendar.get(GregorianCalendar.MONTH)
         year = calendar.get(GregorianCalendar.YEAR)
         day = calendar.get(GregorianCalendar.DAY_OF_MONTH)
-        days = YearMonth.of(year, monthNum + 1).lengthOfMonth()
+        val daysCalendar = GregorianCalendar(year, monthNum, 1)
+        days = daysCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)
         testCalendar = GregorianCalendar(year, monthNum, 1)
         dayOfWeek = testCalendar.get(GregorianCalendar.DAY_OF_WEEK)
         firstDayOfFirstWeek = if (dayOfWeek == 1) 7 else dayOfWeek - 1

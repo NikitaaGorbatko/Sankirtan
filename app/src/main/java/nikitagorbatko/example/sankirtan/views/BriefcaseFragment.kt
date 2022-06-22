@@ -57,7 +57,7 @@ fun BriefcaseScreen(
                 item {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "Нажмите на элемент, чтобы распространить.",
+                            "Нажмите на комплект, чтобы распространить.\nРезультат будет сохранен на сегодня.",
                             modifier = Modifier.padding(16.dp, 8.dp, 16.dp, 76.dp),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.body2,
