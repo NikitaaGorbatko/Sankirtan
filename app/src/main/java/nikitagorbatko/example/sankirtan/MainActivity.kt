@@ -24,9 +24,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val dao = BookRoomDatabase.getDatabase(applicationContext).bookDao()
         val bookDataSource = BookDataSource(dao)
+        //val model = ViewModelProvider(this, MainViewModelFactory(dao))[BriefcaseViewModel::class.java]
 
         setContent {
             SankirtanTheme {
+                //model
                 MainScaffold(bookDataSource, dao, intentLambda = { text ->
                     val sharingIntent = Intent(Intent.ACTION_SEND).also {
                         it.type = "text/plain"

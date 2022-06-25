@@ -24,6 +24,7 @@ val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens
 @ExperimentalUnitApi
 @Composable
 fun MainScaffold(
+    //model: BriefcaseViewModel,
     bookDataSource: BookDataSource,
     dao: BookDao,
     intentLambda: (text: String) -> Unit
@@ -48,8 +49,12 @@ fun MainScaffold(
     lateinit var bookForDialog: Book
     lateinit var itemForDialog: Item
     var totalCost = 0
+    var totalAmount = 0
 
-    briefcaseBooks.forEach { totalCost += it.cost * it.amount }
+    briefcaseBooks.forEach {
+        totalCost += it.cost * it.amount
+        totalAmount += it.amount
+    }
 
     Scaffold(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
@@ -58,7 +63,7 @@ fun MainScaffold(
                 title = {
                     Text(
                         text = route.title + if (route == BottomScreens.Briefcase) {
-                            " ($totalCost руб)"
+                            " (${totalAmount}шт $totalCost руб)"
                         } else ""
                     )
                 },
@@ -111,7 +116,8 @@ fun MainScaffold(
                             //dao.deleteItem(it)
                             itemForDialog = it
                             onDeleteItemDialog = !onDeleteItemDialog
-                        }
+                        },
+                        //model
                     )
                 }
                 BottomScreens.Statistic -> StatisticScreen(
@@ -147,6 +153,7 @@ fun MainScaffold(
             if (onDeleteItemDialog) {
                 DeleteBriefcaseItemDialog(dao, itemForDialog, coroutineScope, snackbarHostState) {
                     onDeleteItemDialog = false
+                    //model.notificationChange()
                     briefcaseBooks = dao.getItems()
                 }
             }
@@ -162,6 +169,7 @@ fun MainScaffold(
                 CreateBriefcaseItemDialog(dao, books, coroutineScope, snackbarHostState) {
                     onCreateItemDialog = false
                     briefcaseBooks = dao.getItems()
+                    //model.notificationChange()
                     distributedBooks = dao.getDistributedItems()
                 }
             }
@@ -173,6 +181,7 @@ fun MainScaffold(
                     coroutineScope = coroutineScope,
                     snackbarHostState = snackbarHostState
                 ) {
+                    //model.notificationChange()
                     onEditItemDialog = false
                     briefcaseBooks = dao.getItems()
                     distributedBooks = dao.getDistributedItems()

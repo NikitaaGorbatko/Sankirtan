@@ -17,8 +17,30 @@ import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import nikitagorbatko.example.sankirtan.room.BookDao
 import nikitagorbatko.example.sankirtan.room.Item
 import nikitagorbatko.example.sankirtan.ui.theme.Gray
+
+
+class MainViewModelFactory(val dao: BookDao) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return BriefcaseViewModel(dao) as T
+    }
+}
+
+
+class BriefcaseViewModel(dao_param: BookDao) : ViewModel() {
+    private val dao = dao_param
+    private val _items = MutableLiveData(dao.getItems())
+    val items = _items
+
+    fun notificationChange() {
+        _items.value = dao.getItems()
+    }
+}
 
 @ExperimentalMaterialApi
 @ExperimentalUnitApi
@@ -26,8 +48,11 @@ import nikitagorbatko.example.sankirtan.ui.theme.Gray
 fun BriefcaseScreen(
     items: List<Item>,
     distributeItemLambda: (item: Item) -> Unit,
-    deleteItemLambda: (item: Item) -> Unit
+    deleteItemLambda: (item: Item) -> Unit,
+    //model: BriefcaseViewModel
 ) {
+    //val items: List<Item> by model.items.observeAsState(mutableListOf())
+
     if (items.isEmpty()) {
         Box(
             contentAlignment = Alignment.Center, modifier = Modifier
@@ -83,7 +108,9 @@ fun BriefcaseBookCard(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .height(if (linesCount.value == 1) 72.dp else 88.dp)
-            .clickable { addItemLambda(item) }
+            .clickable {
+                addItemLambda(item)
+            }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(0.8f),
@@ -105,7 +132,9 @@ fun BriefcaseBookCard(
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(top = 3.dp), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.End) {
-            IconButton(onClick = { deleteItemLambda(item) }) {
+            IconButton(onClick = {
+                deleteItemLambda(item)
+            }) {
                 Icon(
                     Icons.Outlined.Close,
                     contentDescription = null,

@@ -2,8 +2,6 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
-//    id 'org.jetbrains.kotlin.multiplatform'
-//    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
 android {
@@ -13,8 +11,8 @@ android {
         applicationId "nikitagorbatko.example.sankirtan"
         minSdk 21
         targetSdk 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
@@ -79,6 +77,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0")
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation("androidx.compose.material:material-icons-extended:$compose_version")
+
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
 
 //    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.3.0'
 //    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"

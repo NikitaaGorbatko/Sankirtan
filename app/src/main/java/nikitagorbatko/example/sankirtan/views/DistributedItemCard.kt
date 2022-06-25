@@ -1,7 +1,6 @@
 package nikitagorbatko.example.sankirtan.views
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -50,13 +49,14 @@ fun FakeItem(title: String, body: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
-            .clickable { onClick() }
+            //.clickable { onClick() }
         //.clickable { onEditDialog(book) }
     ) {
         Text(
             text = title,
             maxLines = 1,
-            fontSize = TextUnit(16f, TextUnitType.Sp),
+            style = MaterialTheme.typography.h6,
+            //fontSize = TextUnit(16f, TextUnitType.Sp),
             modifier = Modifier.padding(16.dp, 10.dp, 16.dp, 2.dp)
         )
         Text(

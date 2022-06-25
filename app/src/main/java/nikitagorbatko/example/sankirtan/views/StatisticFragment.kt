@@ -119,7 +119,6 @@ fun StatisticContent(
     distributedDayList: List<DistributedItem>,
     onDistributedDayListChange: (list: List<DistributedItem>) -> Unit
 ) {
-
     var donation by remember { mutableStateOf("0") }
     var clickedDay by remember { mutableStateOf(0) }
     var monthNum by remember { mutableStateOf(CalendarProvider.monthNum) }
@@ -175,15 +174,9 @@ fun StatisticContent(
                 exit = fadeOut()
             ) {
                 val holder = DateHolder(clickedDate)
-                val stringBuilder = StringBuilder()//StringBuffer in other thread is preffered
-                stringBuilder.append("${holder.stringDate()}\n\n")
                 var totalCost = 0
                 distributedDayList.forEach {
                     totalCost += it.amount * it.cost
-                    if (it.date == clickedDate) {
-                        stringBuilder
-                            .append("${it.name}:\n${it.amount}шт по ${it.cost}руб = ${it.cost * it.amount}руб.\n\n")
-                    }
                 }
                 Column {
                     var expanded by remember { mutableStateOf(false) }
@@ -193,7 +186,14 @@ fun StatisticContent(
                         modifier = Modifier
                             .padding(16.dp, 0.dp, 16.dp, 16.dp)
                             .fillMaxWidth()
+                            .clickable { expanded = !expanded }
                     ) {
+                        var amount = 0
+                        var cost = 0
+                        distributedDayList.forEach {
+                            amount += it.amount
+                            cost += it.amount * it.cost
+                        }
                         days.forEach {
                             if (it.day == clickedDate) {
                                 donation = it.donation.toString()
@@ -202,23 +202,25 @@ fun StatisticContent(
                             }
                         }
                         if (expanded) {
-                            Column(modifier = Modifier.clickable { expanded = false }) {
+                            Column {
+                                FakeItem(
+                                    title = "Количество книг: $amount",
+                                    body = "Оптовая цена: $cost",
+                                    onClick = {
+
+                                    }
+                                )
+                                Divider()
                                 distributedDayList.forEach {
                                     DistributedItemCard(it)
                                 }
                             }
                         } else {
-                            var amount = 0
-                            var cost = 0
-                            distributedDayList.forEach {
-                                amount += it.amount
-                                cost += it.amount * it.cost
-                            }
                             FakeItem(
                                 title = "Количество книг: $amount",
                                 body = "Оптовая цена: $cost",
                                 onClick = {
-                                    expanded = true
+
                                 }
                             )
                         }
@@ -249,6 +251,15 @@ fun StatisticContent(
                                             .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                                             .padding(end = 24.dp),
                                         onClick = {
+                                            val stringBuilder =
+                                                StringBuilder()//StringBuffer in other thread is preffered
+                                            stringBuilder.append("${holder.stringDate()}\n\n")
+                                            distributedDayList.forEach {
+                                                if (it.date == clickedDate) {
+                                                    stringBuilder
+                                                        .append("${it.name}:\n${it.amount}шт по ${it.cost}руб = ${it.cost * it.amount}руб.\n\n")
+                                                }
+                                            }
                                             stringBuilder.append(
                                                 "\nОптовая цена: ${totalCost}руб\nСбор: ${donation}руб\nРезультат: ${
                                                     try {
@@ -289,9 +300,6 @@ fun StatisticContent(
                                             CalendarProvider.monthNum,
                                             CalendarProvider.year
                                         )
-//                                        if (donation == "0") {
-//                                            //Show snackbar or toast
-//                                        } else {
                                         if (localDay != null) {
                                             if (dao.updateDay(
                                                     localDay!!.id,
