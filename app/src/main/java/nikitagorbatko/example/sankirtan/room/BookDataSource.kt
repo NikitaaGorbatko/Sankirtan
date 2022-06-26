@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 class BookDataSource(private val bookDao: BookDao) {
     //var book by remember { mutableStateOf(bookDao.getBooks()) }
     val books = bookDao.getBooks()
-    val items = bookDao.getItems()
+    val items = bookDao.getBriefcaseItems()
     val distributedItems = bookDao.getDistributedItems()
     val days = bookDao.getDays()
 

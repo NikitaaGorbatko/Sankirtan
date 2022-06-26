@@ -34,11 +34,11 @@ class MainViewModelFactory(val dao: BookDao) : ViewModelProvider.Factory {
 
 class BriefcaseViewModel(dao_param: BookDao) : ViewModel() {
     private val dao = dao_param
-    private val _items = MutableLiveData(dao.getItems())
+    private val _items = MutableLiveData(dao.getBriefcaseItems())
     val items = _items
 
     fun notificationChange() {
-        _items.value = dao.getItems()
+        _items.value = dao.getBriefcaseItems()
     }
 }
 

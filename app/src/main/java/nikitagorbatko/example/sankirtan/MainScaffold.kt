@@ -37,6 +37,7 @@ fun MainScaffold(
     var onEditItemDialog by remember { mutableStateOf(false) }
     var onDeleteItemDialog by remember { mutableStateOf(false) }
     var onAddDistributedItemDialog by remember { mutableStateOf(false) }
+    var onDeleteDistributedItemDialog by remember { mutableStateOf(false) }
 
     var route by remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(bookDataSource.books) }
@@ -48,6 +49,7 @@ fun MainScaffold(
 
     lateinit var bookForDialog: Book
     lateinit var itemForDialog: Item
+    lateinit var distributedItem: DistributedItem
     var totalCost = 0
     var totalAmount = 0
 
@@ -117,6 +119,7 @@ fun MainScaffold(
                             itemForDialog = it
                             onDeleteItemDialog = !onDeleteItemDialog
                         },
+
                         //model
                     )
                 }
@@ -136,7 +139,11 @@ fun MainScaffold(
                     onClickedDateChange = {
                         clickedDate = it
                     },
-                    distributedDayList,
+                    deleteDistributedItem = {
+                        distributedItem = it
+                        onDeleteDistributedItemDialog = !onDeleteDistributedItemDialog
+                    },
+                    distributedDayList = distributedDayList,
                     onDistributedDayListChange = {
                         distributedDayList = it
                     }
@@ -154,7 +161,7 @@ fun MainScaffold(
                 DeleteBriefcaseItemDialog(dao, itemForDialog, coroutineScope, snackbarHostState) {
                     onDeleteItemDialog = false
                     //model.notificationChange()
-                    briefcaseBooks = dao.getItems()
+                    briefcaseBooks = dao.getBriefcaseItems()
                 }
             }
 
@@ -168,7 +175,7 @@ fun MainScaffold(
             if (onCreateItemDialog) {
                 CreateBriefcaseItemDialog(dao, books, coroutineScope, snackbarHostState) {
                     onCreateItemDialog = false
-                    briefcaseBooks = dao.getItems()
+                    briefcaseBooks = dao.getBriefcaseItems()
                     //model.notificationChange()
                     distributedBooks = dao.getDistributedItems()
                 }
@@ -183,7 +190,7 @@ fun MainScaffold(
                 ) {
                     //model.notificationChange()
                     onEditItemDialog = false
-                    briefcaseBooks = dao.getItems()
+                    briefcaseBooks = dao.getBriefcaseItems()
                     distributedBooks = dao.getDistributedItems()
                 }
             }
@@ -197,6 +204,19 @@ fun MainScaffold(
                     date = clickedDate
                 ) {
                     onAddDistributedItemDialog = false
+                    distributedBooks = dao.getDistributedItems()
+                    distributedDayList = selectBooks(DateHolder(clickedDate).day, distributedBooks)
+                }
+            }
+
+            if (onDeleteDistributedItemDialog) {
+                DeleteDistributedItemDialog(
+                    dao = dao,
+                    item = distributedItem,
+                    coroutineScope = coroutineScope,
+                    snackbarHostState = snackbarHostState
+                ) {
+                    onDeleteDistributedItemDialog = false
                     distributedBooks = dao.getDistributedItems()
                     distributedDayList = selectBooks(DateHolder(clickedDate).day, distributedBooks)
                 }

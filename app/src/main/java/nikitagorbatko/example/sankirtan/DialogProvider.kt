@@ -31,10 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import nikitagorbatko.example.sankirtan.room.Book
-import nikitagorbatko.example.sankirtan.room.BookDao
-import nikitagorbatko.example.sankirtan.room.DateHolder
-import nikitagorbatko.example.sankirtan.room.Item
+import nikitagorbatko.example.sankirtan.room.*
 
 //Create book dialog
 @Composable
@@ -317,7 +314,7 @@ fun CreateBriefcaseItemDialog(
                     },
                     modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
                     onClick = {
-                        if (dao.insertItem(
+                        if (dao.insertBriefcaseItem(
                                 currentBook.name,
                                 currentBook.cost,
                                 amount.toInt()
@@ -418,7 +415,7 @@ fun EditBriefcaseItemDialog(
                     onClick = {
                         val resultAmount = item.amount - distributedAmount.toInt()
                         if (resultAmount > 0) {
-                            if (dao.updateItem(
+                            if (dao.updateBriefcaseItem(
                                     item.id,
                                     item.amount - distributedAmount.toInt()
                                 ) > 0
@@ -438,7 +435,7 @@ fun EditBriefcaseItemDialog(
                                 }
                             }
                         } else {
-                            if (dao.deleteItem(item) > 0) {
+                            if (dao.deleteBriefcaseItem(item) > 0) {
                                 dao.insertDistributedItem(item.name, item.cost, item.amount, date)
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
@@ -497,10 +494,67 @@ fun DeleteBriefcaseItemDialog(
                 TextButton(
                     modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
                     onClick = {
-                        if (dao.deleteItem(item) > 0) {
+                        if (dao.deleteBriefcaseItem(item) > 0) {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
                                     "${item.name} комплект удален",
+                                    "OK",
+                                    SnackbarDuration.Short
+                                )
+                            }
+                        }
+                        close()
+                    }
+                ) { Text("УДАЛИТЬ") }
+            }
+        }
+    }
+}
+
+@ExperimentalComposeUiApi
+@Composable
+fun DeleteDistributedItemDialog(
+    dao: BookDao,
+    item: DistributedItem,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    close: () -> Unit
+) {
+    Dialog(onDismissRequest = { close() }) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colors.surface)
+                .height(intrinsicSize = IntrinsicSize.Min)
+                .width(IntrinsicSize.Max)
+                .padding(24.dp, 0.dp, 0.dp, 0.dp)
+        ) {
+            Box(Modifier.height(56.dp)) {
+                Text(
+                    "Удалить комплект?",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                )
+            }
+            Text(
+                text = "Вы действиетльно хотите удалить распространенный комплект? Книги не вернутся в секцию \"Портфель\", если были распространены из нее.",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(top = 0.dp, end = 24.dp, bottom = 16.dp)
+            )
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 8.dp, bottom = 8.dp)
+            ) {
+                TextButton(
+                    modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
+                    onClick = {
+                        if (dao.deleteDistributedItem(item) > 0) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "${item.name} распространенный комплект удален",
                                     "OK",
                                     SnackbarDuration.Short
                                 )

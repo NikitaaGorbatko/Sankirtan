@@ -27,43 +27,6 @@ import nikitagorbatko.example.sankirtan.CalendarProvider
 import nikitagorbatko.example.sankirtan.room.*
 import java.util.*
 
-
-//class StatisticScreenViewModel: ViewModel() {
-//    private val _list = MutableLiveData(mutableListOf<DistributedItem>())
-//    val list: LiveData<MutableList<DistributedItem>> = _list
-//
-//    fun onListChange(list_param: MutableList<DistributedItem>) {
-//        _list.value = list_param
-//    }
-//}
-//
-//@ExperimentalAnimationApi
-//@ExperimentalMaterialApi
-//@ExperimentalUnitApi
-//@Composable
-//fun Statistic(
-//    statisticScreenViewModel: StatisticScreenViewModel = viewModel(),
-//    distributedItems: List<DistributedItem>,
-//    days: List<Day>,
-//    coroutineScope: CoroutineScope,
-//    snackbarHostState: SnackbarHostState,
-//    dao: BookDao,
-//    insertDayLambda: () -> Unit,
-//    liftStringLambda: (text: String) -> Unit
-//) {
-//    val list by statisticScreenViewModel.list.observeAsState()
-//
-//    StatisticScreen(
-//        distributedItems = distributedItems,
-//        days = days,
-//        coroutineScope = coroutineScope,
-//        snackbarHostState = snackbarHostState,
-//        dao = dao,
-//        insertDayLambda = insertDayLambda,
-//        liftStringLambda = liftStringLambda
-//    )
-//}
-
 @ExperimentalComposeUiApi
 @ExperimentalUnitApi
 @ExperimentalMaterialApi
@@ -78,42 +41,7 @@ fun StatisticScreen(
     dao: BookDao,
     insertDayLambda: () -> Unit,
     liftStringLambda: (text: String) -> Unit,
-    clickedDate: Int,
-    onClickedDateChange: (Int) -> Unit,
-    distributedDayList: List<DistributedItem>,
-    onDistributedDayListChange: (list: List<DistributedItem>) -> Unit
-) {
-    //var email by rememberSaveable(saver = stateSaver()) { mutableStateOf("") }
-
-    StatisticContent(
-        distributedItems = distributedItems,
-        days = days,
-        coroutineScope = coroutineScope,
-        snackbarHostState = snackbarHostState,
-        dao = dao,
-        insertDayLambda = insertDayLambda,
-        liftStringLambda = liftStringLambda,
-        clickedDate,
-        onClickedDateChange = { onClickedDateChange(it) },
-        distributedDayList,
-        onDistributedDayListChange = { onDistributedDayListChange(it) }
-    )
-}
-
-@ExperimentalComposeUiApi
-@ExperimentalUnitApi
-@ExperimentalMaterialApi
-@ExperimentalAnimationApi
-@SuppressLint("UnrememberedMutableState")
-@Composable
-fun StatisticContent(
-    distributedItems: List<DistributedItem>,
-    days: List<Day>,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    dao: BookDao,
-    insertDayLambda: () -> Unit,
-    liftStringLambda: (text: String) -> Unit,
+    deleteDistributedItem: (distributedItem: DistributedItem) -> Unit,
     clickedDate: Int,
     onClickedDateChange: (Int) -> Unit,
     distributedDayList: List<DistributedItem>,
@@ -123,12 +51,6 @@ fun StatisticContent(
     var clickedDay by remember { mutableStateOf(0) }
     var monthNum by remember { mutableStateOf(CalendarProvider.monthNum) }
     var localDay: Day? = null
-
-//    if (clickedDay != 0) {
-//        list.forEach {
-//            if (it.date = )
-//        }
-//    }
 
     LazyColumn {
         item {
@@ -186,7 +108,7 @@ fun StatisticContent(
                         modifier = Modifier
                             .padding(16.dp, 0.dp, 16.dp, 16.dp)
                             .fillMaxWidth()
-                            .clickable { expanded = !expanded }
+                        //.clickable {  }
                     ) {
                         var amount = 0
                         var cost = 0
@@ -207,12 +129,16 @@ fun StatisticContent(
                                     title = "Количество книг: $amount",
                                     body = "Оптовая цена: $cost",
                                     onClick = {
-
-                                    }
+                                        expanded = !expanded
+                                    },
+                                    expanded = expanded
                                 )
                                 Divider()
                                 distributedDayList.forEach {
-                                    DistributedItemCard(it)
+                                    DistributedItemCard(it, deleteDistributedItem = { item ->
+                                        deleteDistributedItem(item)
+                                    }
+                                    )
                                 }
                             }
                         } else {
@@ -220,8 +146,9 @@ fun StatisticContent(
                                 title = "Количество книг: $amount",
                                 body = "Оптовая цена: $cost",
                                 onClick = {
-
-                                }
+                                    expanded = !expanded
+                                },
+                                expanded = expanded
                             )
                         }
                     }
@@ -330,14 +257,11 @@ fun StatisticContent(
                                             }
                                         }
                                         insertDayLambda()
-                                        //}
-                                        //pickedDay = 0
                                         keyboardController?.hide()
                                     }),
                                 label = { Text("Пожертвование") }
                             )
                             OutlinedTextField(
-                                //keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                                 modifier = Modifier
                                     .padding(24.dp, 0.dp, 24.dp, 8.dp)
                                     .fillMaxWidth(),
@@ -345,20 +269,8 @@ fun StatisticContent(
                                 maxLines = 1,
                                 enabled = false,
                                 onValueChange = { },
-                                //keyboardActions = KeyboardActions(onDone = {}),
                                 label = { Text("Оптовая цена") }
                             )
-//                                Box(
-//                                    Modifier.height(60.dp),
-//                                    //contentAlignment = Alignment.Center
-//                                ) {
-//                                    Text(
-//                                        text = "=",
-//                                        style = TextStyle(fontSize = 25.sp),
-//                                        modifier = Modifier
-//                                            .paddingFrom(alignmentLine = FirstBaseline, 45.dp)
-//                                    )
-//                                }
                             OutlinedTextField(
                                 modifier = Modifier
                                     .padding(24.dp, 0.dp, 24.dp, 28.dp)
@@ -373,57 +285,6 @@ fun StatisticContent(
                                 onValueChange = { },
                                 label = { Text("Результат") }
                             )
-//                            Box(
-//                                contentAlignment = Alignment.BottomEnd,
-//                                modifier = Modifier.fillMaxSize()
-//                            ) {
-//                                TextButton(
-//                                    enabled = donation.isNotEmpty(),
-//                                    modifier = Modifier.padding(8.dp, 0.dp, 8.dp, 8.dp),
-//                                    onClick = {
-//                                        val dateHolder = DateHolder(
-//                                            clickedDay,
-//                                            CalendarProvider.monthNum,
-//                                            CalendarProvider.year
-//                                        )
-//                                        if (donation == "0") {
-//                                            //Show snackbar or toast
-//                                        } else {
-//                                            if (localDay != null) {
-//                                                if (dao.updateDay(
-//                                                        localDay!!.id,
-//                                                        donation.toInt()
-//                                                    ) > 0
-//                                                ) {
-//                                                    coroutineScope.launch {
-//                                                        snackbarHostState.showSnackbar(
-//                                                            "Сохранено",
-//                                                            "OK",
-//                                                            SnackbarDuration.Short
-//                                                        )
-//                                                    }
-//                                                }
-//                                            } else {
-//                                                if (dao.insertDay(
-//                                                        dateHolder.intDate,
-//                                                        donation.toInt()
-//                                                    ) > 0
-//                                                ) {
-//                                                    coroutineScope.launch {
-//                                                        snackbarHostState.showSnackbar(
-//                                                            "Сохранено",
-//                                                            "OK",
-//                                                            SnackbarDuration.Short
-//                                                        )
-//                                                    }
-//                                                }
-//                                            }
-//                                            insertDayLambda()
-//                                        }
-//                                        //pickedDay = 0
-//                                    }
-//                                ) { Text("СОХРАНИТЬ") }
-//                            }
                         }
                     }
                 }

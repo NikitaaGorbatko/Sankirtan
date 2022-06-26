@@ -3,9 +3,6 @@ package nikitagorbatko.example.sankirtan.room
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
-import nikitagorbatko.example.sankirtan.room.Book
-import nikitagorbatko.example.sankirtan.room.DistributedItem
-import nikitagorbatko.example.sankirtan.room.Item
 
 @Dao
 interface BookDao {
@@ -31,19 +28,19 @@ interface BookDao {
 //    fun updateDistributedItem(itemId: Int, amount: Int): Int
 
     @Delete
-    fun deleteDistributedItem(distributed_item: Item): Int
+    fun deleteDistributedItem(distributed_item: DistributedItem): Int
 
     @Query("SELECT * FROM item")
-    fun getItems(): MutableList<Item>
+    fun getBriefcaseItems(): MutableList<Item>
 
     @Query("INSERT INTO item (name, cost, amount) VALUES(:name, :cost, :amount)")
-    fun insertItem(name: String, cost: Int, amount: Int): Long
+    fun insertBriefcaseItem(name: String, cost: Int, amount: Int): Long
 
     @Query("UPDATE item SET amount = :amount WHERE id = :itemId")
-    fun updateItem(itemId: Int, amount: Int): Int
+    fun updateBriefcaseItem(itemId: Int, amount: Int): Int
 
     @Delete
-    fun deleteItem(item: Item): Int
+    fun deleteBriefcaseItem(item: Item): Int
 
     @Query("SELECT * FROM day")
     fun getDays(): MutableList<Day>
