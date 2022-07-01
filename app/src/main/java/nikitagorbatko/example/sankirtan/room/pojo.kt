@@ -27,6 +27,7 @@ data class DistributedItem(
     var date: Int
 )
 
+//day means date...
 @Entity(tableName = "day")
 data class Day(
     @PrimaryKey val id: Int,

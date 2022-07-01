@@ -27,18 +27,15 @@ import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import nikitagorbatko.example.sankirtan.room.*
 
 //Create book dialog
 @Composable
 fun CreateBookDialog(
     dao: BookDao,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     close: () -> Unit
 ) {
     var bookName by remember { mutableStateOf("") }
@@ -91,13 +88,7 @@ fun CreateBookDialog(
                     },
                     onClick = {
                         if (dao.insertBook(bookName, bookCost.toInt()) > 0) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "$bookName добавлена",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
+                            showSnackbar("$bookName добавлена", "ОК")
                         }
                         close()
                     }
@@ -112,8 +103,7 @@ fun CreateBookDialog(
 fun EditBookDialog(
     dao: BookDao,
     book: Book,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     close: () -> Unit
 ) {
     var editedName by remember { mutableStateOf(book.name) }
@@ -160,13 +150,7 @@ fun EditBookDialog(
                 TextButton(onClick = {
                     if (dao.deleteBook(book) == 1) {
                         close()
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar(
-                                "${book.name} удалена",
-                                "ОК",
-                                SnackbarDuration.Short
-                            )
-                        }
+                        showSnackbar("${book.name} удалена", "ОК")
                     }
                 }) { Text("УДАЛИТЬ") }
                 TextButton(
@@ -177,13 +161,7 @@ fun EditBookDialog(
                     },
                     onClick = {
                         if (dao.updateBook(book.id, editedName, editedCost.toInt()) == 1) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "${book.name} изменена",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
+                            showSnackbar("${book.name} изменена", "OK")
                         }
                         close()
                     }
@@ -198,8 +176,7 @@ fun EditBookDialog(
 fun CreateBriefcaseItemDialog(
     dao: BookDao,
     books: List<Book>,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     close: () -> Unit,
 ) {
     var amount by remember { mutableStateOf("0") }
@@ -320,13 +297,7 @@ fun CreateBriefcaseItemDialog(
                                 amount.toInt()
                             ) > 0
                         ) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "${currentBook.name} добавлена в портфель",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
+                            showSnackbar("${currentBook.name} добавлена в портфель", "OK")
                         }
                         close()
                     }
@@ -341,8 +312,7 @@ fun CreateBriefcaseItemDialog(
 fun EditBriefcaseItemDialog(
     dao: BookDao,
     item: Item,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     close: () -> Unit
 ) {
     var amount by remember { mutableStateOf(item.amount.toString()) }
@@ -426,24 +396,12 @@ fun EditBriefcaseItemDialog(
                                     distributedAmount.toInt(),
                                     date
                                 )
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        "Книги распространены",
-                                        "OK",
-                                        SnackbarDuration.Short
-                                    )
-                                }
+                                showSnackbar("Книги распространены", "OK")
                             }
                         } else {
                             if (dao.deleteBriefcaseItem(item) > 0) {
                                 dao.insertDistributedItem(item.name, item.cost, item.amount, date)
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        "Книги распространены",
-                                        "OK",
-                                        SnackbarDuration.Short
-                                    )
-                                }
+                                showSnackbar("Книги распространены", "OK")
                             }
                         }
                         close()
@@ -459,8 +417,7 @@ fun EditBriefcaseItemDialog(
 fun DeleteBriefcaseItemDialog(
     dao: BookDao,
     item: Item,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     close: () -> Unit
 ) {
     Dialog(onDismissRequest = { close() }) {
@@ -495,13 +452,7 @@ fun DeleteBriefcaseItemDialog(
                     modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
                     onClick = {
                         if (dao.deleteBriefcaseItem(item) > 0) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "${item.name} комплект удален",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
+                            showSnackbar("${item.name} комплект удален", "OK")
                         }
                         close()
                     }
@@ -516,11 +467,10 @@ fun DeleteBriefcaseItemDialog(
 fun DeleteDistributedItemDialog(
     dao: BookDao,
     item: DistributedItem,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
-    close: () -> Unit
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
+    close: (deleted: Boolean) -> Unit
 ) {
-    Dialog(onDismissRequest = { close() }) {
+    Dialog(onDismissRequest = { close(false) }) {
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
@@ -551,16 +501,11 @@ fun DeleteDistributedItemDialog(
                 TextButton(
                     modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
                     onClick = {
-                        if (dao.deleteDistributedItem(item) > 0) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "${item.name} распространенный комплект удален",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
+                        val deleted = dao.deleteDistributedItem(item) > 0
+                        if (deleted) {
+                            showSnackbar("${item.name} распространенный комплект удален", "OK")
                         }
-                        close()
+                        close(deleted)
                     }
                 ) { Text("УДАЛИТЬ") }
             }
@@ -576,8 +521,7 @@ fun DeleteDistributedItemDialog(
 fun AddDistributedItemDialog(
     dao: BookDao,
     books: List<Book>,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     date: Int,
     close: () -> Unit
 ) {
@@ -702,13 +646,14 @@ fun AddDistributedItemDialog(
                                 DateHolder(date).intDate
                             ) > 0
                         ) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    "${currentBook.name} Распространено",
-                                    "OK",
-                                    SnackbarDuration.Short
-                                )
-                            }
+                            showSnackbar("${currentBook.name} Распространено", "ОК")
+//                            coroutineScope.launch {
+//                                snackbarHostState.showSnackbar(
+//                                    "${currentBook.name} Распространено",
+//                                    "OK",
+//                                    SnackbarDuration.Short
+//                                )
+//                            }
                         }
                         close()
                     }
@@ -717,4 +662,47 @@ fun AddDistributedItemDialog(
         }
     }
 }
+
+@ExperimentalComposeUiApi
+@Composable
+fun InformThatDateUndefined(close: () -> Unit) {
+    Dialog(onDismissRequest = { close() }) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colors.surface)
+                .height(intrinsicSize = IntrinsicSize.Min)
+                .width(IntrinsicSize.Max)
+                .padding(24.dp, 0.dp, 0.dp, 0.dp)
+        ) {
+            Box(Modifier.height(56.dp)) {
+                Text(
+                    "Ошибка",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
+                )
+            }
+            Text(
+                text = "Дата не выбрана. Пожалуйста, выберите дату в календаре и затем добавьте книги.",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(top = 0.dp, end = 24.dp, bottom = 16.dp)
+            )
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 8.dp, bottom = 8.dp)
+            ) {
+                TextButton(
+                    modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
+                    onClick = {
+                        close()
+                    }
+                ) { Text("ОК") }
+            }
+        }
+    }
+}
+
 

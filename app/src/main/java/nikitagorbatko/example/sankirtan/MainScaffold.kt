@@ -12,11 +12,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import nikitagorbatko.example.sankirtan.room.*
 import nikitagorbatko.example.sankirtan.views.StatisticScreen
 import nikitagorbatko.example.sankirtan.views.selectBooks
 
 val screens = listOf(BottomScreens.Books, BottomScreens.Briefcase, BottomScreens.Statistic)
+
+enum class Dialogs {
+    NONE,
+    CREATE_BOOK_DIALOG,
+    EDIT_BOOK_DIALOG,
+    CREATE_ITEM_DIALOG,
+    EDIT_ITEM_DIALOG,
+    DELETE_ITEM_DIALOG,
+    ADD_DISTRIBUTED_ITEM_DIALOG,
+    DELETE_DISTRIBUTED_ITEM_DIALOG,
+    INFORM_THAT_DATE_UNDEFINED
+}
 
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
@@ -31,13 +44,7 @@ fun MainScaffold(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var onCreateBookDialog by remember { mutableStateOf(false) }
-    var onEditBookDialog by remember { mutableStateOf(false) }
-    var onCreateItemDialog by remember { mutableStateOf(false) }
-    var onEditItemDialog by remember { mutableStateOf(false) }
-    var onDeleteItemDialog by remember { mutableStateOf(false) }
-    var onAddDistributedItemDialog by remember { mutableStateOf(false) }
-    var onDeleteDistributedItemDialog by remember { mutableStateOf(false) }
+    var whichDialog by remember { mutableStateOf(Dialogs.NONE) }
 
     var route by remember { mutableStateOf(screens[0]) }
     var books by remember { mutableStateOf(bookDataSource.books) }
@@ -46,16 +53,24 @@ fun MainScaffold(
     var distributedDayList by remember { mutableStateOf(listOf<DistributedItem>()) }
     var days by remember { mutableStateOf(bookDataSource.days) }
     var clickedDate by remember { mutableStateOf(0) }
+    var donation_param by remember { mutableStateOf("0") }
 
     lateinit var bookForDialog: Book
     lateinit var itemForDialog: Item
     lateinit var distributedItem: DistributedItem
+    var lastDay: Day? = null
     var totalCost = 0
     var totalAmount = 0
 
     briefcaseBooks.forEach {
         totalCost += it.cost * it.amount
         totalAmount += it.amount
+    }
+
+    fun showSnackbar(message: String, actionLabel: String) {
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(message, actionLabel, SnackbarDuration.Short)
+        }
     }
 
     Scaffold(
@@ -65,36 +80,23 @@ fun MainScaffold(
                 title = {
                     Text(
                         text = route.title + if (route == BottomScreens.Briefcase) {
-                            " (${totalAmount}шт $totalCost руб)"
+                            " (${totalAmount}шт ${totalCost}руб)"
                         } else ""
                     )
                 },
                 elevation = 12.dp,
-//                actions = {
+                actions = {
 //                    IconButton(
-//                        onClick = {
-//                            when (route) {
-//                                BottomScreens.Books -> {
-//                                    onCreateBookDialog = true
-//                                }
-//                                BottomScreens.Briefcase -> {
-//                                    onCreateItemDialog = true
-//                                }
-//                                BottomScreens.Statistic -> {
-//                                    onAddDistributedItemDialog = true
-//                                    dayForDistribution = 8
-//                                }
-//                            }
-//                        },
+//                        onClick = { onQuestionDialog = true },
 //                        content = {
 //                            Icon(
-//                                imageVector = Icons.Filled.Add,
+//                                imageVector = Icons.Filled.QuestionAnswer,
 //                                contentDescription = null,
 //                                tint = Color.White
 //                            )
 //                        },
 //                    )
-//                }
+                }
             )
         },
         content = {
@@ -103,7 +105,7 @@ fun MainScaffold(
                     distributedDayList = listOf()
                     BooksScreen(books) {
                         bookForDialog = it
-                        onEditBookDialog = !onEditBookDialog
+                        whichDialog = Dialogs.EDIT_BOOK_DIALOG
                     }
                 }
                 BottomScreens.Briefcase -> {
@@ -112,22 +114,20 @@ fun MainScaffold(
                         briefcaseBooks,
                         distributeItemLambda = {
                             itemForDialog = it
-                            onEditItemDialog = !onEditItemDialog
+                            whichDialog = Dialogs.EDIT_ITEM_DIALOG
                         },
                         deleteItemLambda = {
                             //dao.deleteItem(it)
                             itemForDialog = it
-                            onDeleteItemDialog = !onDeleteItemDialog
+                            whichDialog = Dialogs.DELETE_ITEM_DIALOG
                         },
-
                         //model
                     )
                 }
                 BottomScreens.Statistic -> StatisticScreen(
                     distributedItems = distributedBooks,
                     days = days,
-                    coroutineScope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
+                    showSnackbar = { message, actionLabel -> showSnackbar(message, actionLabel) },
                     dao = dao,
                     insertDayLambda = {
                         days = dao.getDays()
@@ -139,86 +139,156 @@ fun MainScaffold(
                     onClickedDateChange = {
                         clickedDate = it
                     },
-                    deleteDistributedItem = {
-                        distributedItem = it
-                        onDeleteDistributedItemDialog = !onDeleteDistributedItemDialog
+                    deleteDistributedItem = { item, day ->
+                        distributedItem = item
+                        lastDay = day
+                        whichDialog = Dialogs.DELETE_DISTRIBUTED_ITEM_DIALOG
                     },
                     distributedDayList = distributedDayList,
                     onDistributedDayListChange = {
                         distributedDayList = it
-                    }
+                    },
+                    donation_param = donation_param,
                 )
             }
 
-            if (onCreateBookDialog) {
-                CreateBookDialog(dao, coroutineScope, snackbarHostState) {
-                    onCreateBookDialog = false
-                    books = dao.getBooks()
-                }
-            }
 
-            if (onDeleteItemDialog) {
-                DeleteBriefcaseItemDialog(dao, itemForDialog, coroutineScope, snackbarHostState) {
-                    onDeleteItemDialog = false
-                    //model.notificationChange()
-                    briefcaseBooks = dao.getBriefcaseItems()
-                }
-            }
 
-            if (onEditBookDialog) {
-                EditBookDialog(dao, bookForDialog, coroutineScope, snackbarHostState) {
-                    onEditBookDialog = false
-                    books = dao.getBooks()
+            when (whichDialog) {
+                Dialogs.NONE -> {}
+                Dialogs.CREATE_BOOK_DIALOG -> {
+                    CreateBookDialog(
+                        dao,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = {
+                            whichDialog = Dialogs.NONE
+                            books = dao.getBooks()
+                        }
+                    )
                 }
-            }
-
-            if (onCreateItemDialog) {
-                CreateBriefcaseItemDialog(dao, books, coroutineScope, snackbarHostState) {
-                    onCreateItemDialog = false
-                    briefcaseBooks = dao.getBriefcaseItems()
-                    //model.notificationChange()
-                    distributedBooks = dao.getDistributedItems()
+                Dialogs.EDIT_BOOK_DIALOG -> {
+                    EditBookDialog(
+                        dao,
+                        bookForDialog,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = {
+                            whichDialog = Dialogs.NONE
+                            books = dao.getBooks()
+                        }
+                    )
                 }
-            }
-
-            if (onEditItemDialog) {
-                EditBriefcaseItemDialog(
-                    item = itemForDialog,
-                    dao = dao,
-                    coroutineScope = coroutineScope,
-                    snackbarHostState = snackbarHostState
-                ) {
-                    //model.notificationChange()
-                    onEditItemDialog = false
-                    briefcaseBooks = dao.getBriefcaseItems()
-                    distributedBooks = dao.getDistributedItems()
+                Dialogs.CREATE_ITEM_DIALOG -> {
+                    CreateBriefcaseItemDialog(
+                        dao,
+                        books,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = {
+                            whichDialog = Dialogs.NONE
+                            briefcaseBooks = dao.getBriefcaseItems()
+                            //model.notificationChange()
+                            distributedBooks = dao.getDistributedItems()
+                        }
+                    )
                 }
-            }
-
-            if (onAddDistributedItemDialog) {
-                AddDistributedItemDialog(
-                    dao = dao,
-                    books = books,
-                    coroutineScope = coroutineScope,
-                    snackbarHostState = snackbarHostState,
-                    date = clickedDate
-                ) {
-                    onAddDistributedItemDialog = false
-                    distributedBooks = dao.getDistributedItems()
-                    distributedDayList = selectBooks(DateHolder(clickedDate).day, distributedBooks)
+                Dialogs.EDIT_ITEM_DIALOG -> {
+                    EditBriefcaseItemDialog(
+                        item = itemForDialog,
+                        dao = dao,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = {
+                            //model.notificationChange()
+                            whichDialog = Dialogs.NONE
+                            briefcaseBooks = dao.getBriefcaseItems()
+                            distributedBooks = dao.getDistributedItems()
+                        }
+                    )
                 }
-            }
-
-            if (onDeleteDistributedItemDialog) {
-                DeleteDistributedItemDialog(
-                    dao = dao,
-                    item = distributedItem,
-                    coroutineScope = coroutineScope,
-                    snackbarHostState = snackbarHostState
-                ) {
-                    onDeleteDistributedItemDialog = false
-                    distributedBooks = dao.getDistributedItems()
-                    distributedDayList = selectBooks(DateHolder(clickedDate).day, distributedBooks)
+                Dialogs.DELETE_ITEM_DIALOG -> {
+                    DeleteBriefcaseItemDialog(
+                        dao,
+                        itemForDialog,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = {
+                            whichDialog = Dialogs.NONE
+                            //model.notificationChange()
+                            briefcaseBooks = dao.getBriefcaseItems()
+                        }
+                    )
+                }
+                Dialogs.ADD_DISTRIBUTED_ITEM_DIALOG -> {
+                    AddDistributedItemDialog(
+                        dao = dao,
+                        books = books,
+                        date = clickedDate,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = {
+                            whichDialog = Dialogs.NONE
+                            distributedBooks = dao.getDistributedItems()
+                            distributedDayList =
+                                selectBooks(DateHolder(clickedDate).day, distributedBooks)
+                        }
+                    )
+                }
+                Dialogs.DELETE_DISTRIBUTED_ITEM_DIALOG -> {
+                    DeleteDistributedItemDialog(
+                        dao = dao,
+                        item = distributedItem,
+                        showSnackbar = { message, actionLabel ->
+                            showSnackbar(
+                                message,
+                                actionLabel
+                            )
+                        },
+                        close = { deleted ->
+                            whichDialog = Dialogs.NONE
+                            if (deleted) {
+                                distributedBooks = dao.getDistributedItems()
+                                distributedDayList =
+                                    selectBooks(DateHolder(clickedDate).day, distributedBooks)
+                                lastDay?.let { it1 ->
+                                    dao.deleteDay(it1)
+                                    days = dao.getDays()
+                                    lastDay = null
+                                    donation_param = "0"
+                                }
+                            }
+                        }
+                    )
+                }
+                Dialogs.INFORM_THAT_DATE_UNDEFINED -> {
+                    InformThatDateUndefined {
+                        whichDialog = Dialogs.NONE
+                    }
                 }
             }
         },
@@ -245,30 +315,31 @@ fun MainScaffold(
             }
         },
         floatingActionButton = {
-            if (route != BottomScreens.Statistic || clickedDate != 0) {
-                FloatingActionButton(
-                    onClick = {
-                        when (route) {
-                            BottomScreens.Books -> {
-                                onCreateBookDialog = true
-                            }
-                            BottomScreens.Briefcase -> {
-                                onCreateItemDialog = true
-                            }
-                            BottomScreens.Statistic -> {
-                                onAddDistributedItemDialog = true
+            FloatingActionButton(
+                onClick = {
+                    when (route) {
+                        BottomScreens.Books -> {
+                            whichDialog = Dialogs.CREATE_BOOK_DIALOG
+                        }
+                        BottomScreens.Briefcase -> {
+                            whichDialog = Dialogs.CREATE_ITEM_DIALOG
+                        }
+                        BottomScreens.Statistic -> {
+                            if (clickedDate == 0) {
+                                whichDialog = Dialogs.INFORM_THAT_DATE_UNDEFINED
+                            } else {
+                                whichDialog = Dialogs.ADD_DISTRIBUTED_ITEM_DIALOG
                             }
                         }
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = "",
-                        tint = Color.White
-                    )
                 }
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "",
+                    tint = Color.White
+                )
             }
-
         }
     )
 }

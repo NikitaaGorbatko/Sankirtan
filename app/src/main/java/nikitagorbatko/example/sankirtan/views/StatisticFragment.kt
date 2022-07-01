@@ -21,9 +21,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import nikitagorbatko.example.sankirtan.CalendarProvider
+import nikitagorbatko.example.sankirtan.MessageBuilder
 import nikitagorbatko.example.sankirtan.room.*
 import java.util.*
 
@@ -36,18 +35,20 @@ import java.util.*
 fun StatisticScreen(
     distributedItems: List<DistributedItem>,
     days: List<Day>,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    showSnackbar: (message: String, actionLabel: String) -> Unit,
     dao: BookDao,
     insertDayLambda: () -> Unit,
     liftStringLambda: (text: String) -> Unit,
-    deleteDistributedItem: (distributedItem: DistributedItem) -> Unit,
+    deleteDistributedItem: (distributedItem: DistributedItem, day: Day?) -> Unit,
     clickedDate: Int,
     onClickedDateChange: (Int) -> Unit,
     distributedDayList: List<DistributedItem>,
-    onDistributedDayListChange: (list: List<DistributedItem>) -> Unit
+    onDistributedDayListChange: (list: List<DistributedItem>) -> Unit,
+    donation_param: String,
 ) {
+    //val focusRequest = remember { FocusRequester() }
     var donation by remember { mutableStateOf("0") }
+    donation = donation_param
     var clickedDay by remember { mutableStateOf(0) }
     var monthNum by remember { mutableStateOf(CalendarProvider.monthNum) }
     var localDay: Day? = null
@@ -83,7 +84,7 @@ fun StatisticScreen(
             if (distributedDayList.isEmpty()) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        "Нет книг в этот день.\n",
+                        "Нет книг в этот день. Выберите дату и добавьте книги с помощью кнопки \"+\".",
                         modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 76.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.body2,
@@ -134,10 +135,21 @@ fun StatisticScreen(
                                     expanded = expanded
                                 )
                                 Divider()
+                                val isLastSet = distributedDayList.size < 2
                                 distributedDayList.forEach {
-                                    DistributedItemCard(it, deleteDistributedItem = { item ->
-                                        deleteDistributedItem(item)
-                                    }
+                                    DistributedItemCard(
+                                        it,
+                                        deleteDistributedItem = { item ->
+                                            deleteDistributedItem(
+                                                item,
+                                                if (isLastSet && localDay != null) {
+                                                    //onDonationChange("0")
+                                                    localDay
+                                                } else {
+                                                    null
+                                                }
+                                            )
+                                        },
                                     )
                                 }
                             }
@@ -178,25 +190,15 @@ fun StatisticScreen(
                                             .paddingFrom(alignmentLine = FirstBaseline, 40.dp)
                                             .padding(end = 24.dp),
                                         onClick = {
-                                            val stringBuilder =
-                                                StringBuilder()//StringBuffer in other thread is preffered
-                                            stringBuilder.append("${holder.stringDate()}\n\n")
-                                            distributedDayList.forEach {
-                                                if (it.date == clickedDate) {
-                                                    stringBuilder
-                                                        .append("${it.name}:\n${it.amount}шт по ${it.cost}руб = ${it.cost * it.amount}руб.\n\n")
-                                                }
-                                            }
-                                            stringBuilder.append(
-                                                "\nОптовая цена: ${totalCost}руб\nСбор: ${donation}руб\nРезультат: ${
-                                                    try {
-                                                        "${donation.toInt() - totalCost}руб"
-                                                    } catch (_: Exception) {
-                                                        "${-totalCost}руб"
-                                                    }
-                                                }"
+                                            liftStringLambda(
+                                                MessageBuilder.build(
+                                                    distributedDayList,
+                                                    holder,
+                                                    totalCost,
+                                                    donation.toInt(),
+                                                    clickedDate
+                                                )
                                             )
-                                            liftStringLambda(stringBuilder.toString())
                                         },
                                         content = {
                                             Icon(
@@ -233,13 +235,7 @@ fun StatisticScreen(
                                                     donation.toInt()
                                                 ) > 0
                                             ) {
-                                                coroutineScope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        "Сохранено",
-                                                        "OK",
-                                                        SnackbarDuration.Short
-                                                    )
-                                                }
+                                                showSnackbar("Сохранено", "OK")
                                             }
                                         } else {
                                             if (dao.insertDay(
@@ -247,13 +243,7 @@ fun StatisticScreen(
                                                     donation.toInt()
                                                 ) > 0
                                             ) {
-                                                coroutineScope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        "Сохранено",
-                                                        "OK",
-                                                        SnackbarDuration.Short
-                                                    )
-                                                }
+                                                showSnackbar("Сохранено", "OK")
                                             }
                                         }
                                         insertDayLambda()

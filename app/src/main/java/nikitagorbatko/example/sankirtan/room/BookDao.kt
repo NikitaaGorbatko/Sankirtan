@@ -45,6 +45,7 @@ interface BookDao {
     @Query("SELECT * FROM day")
     fun getDays(): MutableList<Day>
 
+    //day means date....
     @Query("INSERT INTO day (day, donation) VALUES(:day, :donation)")
     fun insertDay(day: Int, donation: Int): Long
 
@@ -53,5 +54,8 @@ interface BookDao {
 
     @Delete
     fun deleteDay(item: Day): Int
+
+    @Query("DELETE FROM day WHERE day = :day")
+    fun deleteDefinedDay(day: Int)//не заработало
 
 }

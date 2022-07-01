@@ -27,7 +27,7 @@ import nikitagorbatko.example.sankirtan.ui.theme.Gray
 @Composable
 fun DistributedItemCard(
     item: DistributedItem,
-    deleteDistributedItem: (item: DistributedItem) -> Unit
+    deleteDistributedItem: (item: DistributedItem) -> Unit,
 ) {
     var linesCount = remember { mutableStateOf(1) }
     Row(
@@ -72,13 +72,6 @@ fun DistributedItemCard(
                     tint = Gray,
                 )
             }
-//            Text(item.amount.toString() + "шт",
-//                style = MaterialTheme.typography.body2,
-//                textAlign = TextAlign.End,
-//                modifier = Modifier
-//                    .padding(16.dp, 0.dp, 16.dp, 10.dp)
-//                    .fillMaxWidth()
-//            )
         }
     }
     Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
@@ -120,11 +113,5 @@ fun FakeItem(title: String, body: String, onClick: () -> Unit, expanded: Boolean
                 }
             }
         }
-
-//        Text(
-//            text = body,
-//            style = MaterialTheme.typography.body2,
-//            modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 10.dp)
-//        )
     }
 }

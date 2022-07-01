@@ -60,7 +60,8 @@ fun BriefcaseScreen(
                 .fillMaxHeight()
         ) {
             Text(
-                "Портфель пуст, нажмите \"+\" для добавления.   ",
+                "Портфель пуст, нажмите \"+\" для добавления. Книги, распространенные из секции \"Портфель\", " +
+                        "будут сохранены на сегодня в разделе \"Статистика\".",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.body2,
             )
@@ -68,8 +69,6 @@ fun BriefcaseScreen(
     } else {
         LazyColumn(
             modifier = Modifier.padding(0.dp, 0.dp, 0.dp, 60.dp),
-            //contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            //verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             items(items) { item: Item ->
                 BriefcaseBookCard(
@@ -144,13 +143,6 @@ fun BriefcaseBookCard(
                     tint = Gray,
                 )
             }
-//            Text(item.amount.toString() + "шт",
-//                style = MaterialTheme.typography.body2,
-//                textAlign = TextAlign.End,
-//                modifier = Modifier
-//                    .padding(16.dp, 0.dp, 16.dp, 10.dp)
-//                    .fillMaxWidth()
-//            )
         }
     }
     Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
